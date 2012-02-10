@@ -1,0 +1,797 @@
+<robot name="wam_7dof_ft_hand"
+
+        xmlns:xi="http://www.w3.org/2001/XInclude"
+        xmlns:gazebo="http://playerstage.sourceforge.net/gazebo/xmlschema/#gz"
+        xmlns:model="http://playerstage.sourceforge.net/gazebo/xmlschema/#model"
+        xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+        xmlns:body="http://playerstage.sourceforge.net/gazebo/xmlschema/#body"
+        xmlns:geom="http://playerstage.sourceforge.net/gazebo/xmlschema/#geom"
+        xmlns:joint="http://playerstage.sourceforge.net/gazebo/xmlschema/#joint"
+        xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+        xmlns:rendering="http://playerstage.sourceforge.net/gazebo/xmlschema/#rendering"
+        xmlns:renderable="http://playerstage.sourceforge.net/gazebo/xmlschema/#renderable"
+        xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+        xmlns:physics="http://playerstage.sourceforge.net/gazebo/xmlschema/#physics">
+        
+  #Fictional Footprint - for integration
+  <link name="world"/>
+  <link name="wam_footprint">
+    <inertial>
+        <mass value="0.0001" />
+          <origin xyz="0 0 0" />
+        	<inertia ixx="0.0001" ixy="0.0" ixz="0.0"iyy="0.0001" iyz="0.0" izz="0.0001" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+           <box size="0.001 0.001 0.001" />
+        </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0" rpy="0 0 0" />
+       <geometry>
+         <box size="0.001 0.001 0.001" />
+       </geometry>
+    </collision>  
+  </link>
+  
+  #WAM BASE
+  <link name="wam_base"> 
+  	<inertial>
+  	  <mass value="9.97059584"/>
+	  <origin xyz="-0.02017671 -0.26604706 -0.14071720" />
+	  <inertia ixx="1.01232865" ixy="0.05992441" ixz="0.05388736" iyy="0.38443311" iyz="0.37488748" izz="0.82739198"/>
+	</inertial>
+	<visual> 
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="wam_base_visual">
+        <mesh filename="package://wam_description/meshes/wam_base.mesh" />
+      </geometry>
+      <material name="LightGrey">
+        <color rgba="0.9 0.9 0.9 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="wam_base_collision">
+        <mesh filename="package://wam_description/meshes/wam_base.mesh" />
+      </geometry>
+    </collision>
+  </link>
+  
+  #LINK J1  
+  <link name="j1">
+    <inertial>
+  	  <mass value="10.76768767"/>
+	  <origin xyz="-0.00443422 0.12189039 -0.00066489" />  
+	  <inertia ixx="0.29486350" ixy="-0.00795023" ixz="-0.00009311" iyy="0.11350017" iyz="0.00018711" izz="0.25065343"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j1_visual">
+        <mesh filename="package://wam_description/meshes/link_j1.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j1_collision">
+        <mesh filename="package://wam_description/meshes/link_j1.mesh" />
+      </geometry>
+    </collision>
+  </link>
+  
+  #LINK J2  
+  <link name="j2">
+    <inertial>
+  	  <mass value="3.87493756"/>
+	  <origin xyz="-0.00236983 0.03105614 0.01542114" />  
+	  <inertia ixx="0.02606840" ixy="-0.00001346" ixz="-0.00011701" iyy="0.01472202" iyz="0.00003659" izz="0.01934814"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j2_visual">
+        <mesh filename="package://wam_description/meshes/link_j2.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j2_collision">
+        <mesh filename="package://wam_description/meshes/link_j2.mesh" />
+      </geometry>
+    </collision>
+  </link>
+  
+  #LINK J3  
+  <link name="j3">
+    <inertial>
+  	  <mass value="1.80228141"/>
+	  <origin xyz="-0.03825858 0.20750770 0.00003309" />  
+	  <inertia ixx="0.13671601" ixy="-0.01680434" ixz="0.00000510" iyy="0.00588354" iyz="-0.00000530" izz="0.13951371"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j3_visual">
+        <mesh filename="package://wam_description/meshes/link_j3.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j3_collision">
+        <mesh filename="package://wam_description/meshes/link_j3.mesh" />
+      </geometry>
+    </collision>
+  </link>
+  
+  #LINK J4  
+  <link name="j4">
+    <inertial>
+  	  <mass value="1.06513649"/>
+	  <origin xyz="0.01095471 -0.00002567 0.14053900" />  
+	  <inertia ixx="0.03952350" ixy="0.00000189" ixz="0.00003117" iyy="0.04008214" iyz="0.00000131" izz="0.00210299"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j4_visual">
+        <mesh filename="package://wam_description/meshes/link_j4.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j4_collision">
+        <mesh filename="package://wam_description/meshes/link_j4.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+    
+  #LINK J5  
+  <link name="j5">
+    <inertial>
+  	  <mass value="0.12376019"/>
+	  <origin xyz="0.00008921 0.00511217 0.00435824" />  
+	  <inertia ixx="0.00005587" ixy="0.00000026" ixz="0.00000000" iyy="0.00007817" iyz="-0.00000083" izz="0.00006594"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j5_visual">
+        <mesh filename="package://wam_description/meshes/link_j5.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j5_collision">
+        <mesh filename="package://wam_description/meshes/link_j5.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+    
+  #LINK J6  
+  <link name="j6">
+    <inertial>
+  	  <mass value="0.41797364"/>
+	  <origin xyz="-0.00012262 -0.01703194 0.02468336" />  
+	  <inertia ixx="0.00093106" ixy="0.00000148" ixz="-0.00000201" iyy="0.00049833" iyz="-0.00022162" izz="0.00057483"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j6_visual">
+        <mesh filename="package://wam_description/meshes/link_j6.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j6_collision">
+        <mesh filename="package://wam_description/meshes/link_j6.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK J7  
+  <link name="j7">
+    <inertial>
+  	  <mass value="0.06864753"/>
+	  <origin xyz="-0.00007974 0.00016313 -0.00323552" />  
+	  <inertia ixx="0.00003845" ixy="-0.00000019" ixz="0.00000002" iyy="0.00003878" iyz="-0.00000004" izz="0.00007408"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j6_visual">
+        <mesh filename="package://wam_description/meshes/link_j7.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_j7_collision">
+        <mesh filename="package://wam_description/meshes/link_j7.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+
+  #LINK BHAND BASE
+  <link name="bhand_base">
+    <inertial>
+  	  <mass value="0.8"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_base_visual">
+        <mesh filename="package://wam_description/meshes/bhand_base.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_base_collision">
+        <mesh filename="package://wam_description/meshes/bhand_base.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #FINGERS
+  
+  #LINK BHAND LINK F11
+  <link name="bhand_link11">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f11_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link1.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f11_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link1.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F21
+  <link name="bhand_link21">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f21_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link1.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f21_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link1.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F12
+  <link name="bhand_link12">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f12_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link2.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f12_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link2.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F22
+  <link name="bhand_link22">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f22_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link2.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f22_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link2.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F32
+  <link name="bhand_link32">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f32_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link2.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f32_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link2.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F13
+  <link name="bhand_link13">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f13_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link3.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f13_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link3.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F23
+  <link name="bhand_link23">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f23_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link3.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f23_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link3.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  #LINK BHAND LINK F33
+  <link name="bhand_link33">
+    <inertial>
+  	  <mass value="0.1"/>
+	  <origin xyz="0 0 0" />  
+	  <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+	</inertial>
+	<visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f33_visual">
+        <mesh filename="package://wam_description/meshes/bhand_link3.mesh" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="link_bhand_f33_collision">
+        <mesh filename="package://wam_description/meshes/bhand_link3.mesh" />
+      </geometry>
+      <contact_coefficients kd="1.0" kp="1000.0" mu="0"/>
+    </collision>
+  </link>  
+  
+  ## Joint Descriptions
+  <joint name="fix_world" type="fixed">
+    <parent link="world"/>
+    <child link="wam_footprint"/>
+  </joint>
+  
+  <joint name="wam_basejoint" type="fixed">
+    <parent link="wam_footprint"/>
+    <child link="wam_base" />
+    <origin xyz="0 0 0.0" rpy="0 0 0" />
+  </joint>
+    
+  <joint name="wam_j1_joint" type="revolute">
+     <origin xyz="0.22 0.14 0.346" rpy="-1.57079633 0 0" /> 
+     <parent link="wam_base"/>
+     <child link="j1" />
+     <axis xyz="0 1 0"/>
+     <limit effort="30" velocity="1.5" lower="-2.6" upper="2.6" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+   
+  <joint name="wam_j2_joint" type="revolute">
+     <origin xyz="0.0 0.0 0.0" rpy="0 0 0" /> 
+     <parent link="j1"/>
+     <child link="j2" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="-2.0" upper="2.0" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="wam_j3_joint" type="revolute">
+     <origin xyz="0.0 0.0 0.0" rpy="0 0 0" /> 
+     <parent link="j2"/>
+     <child link="j3" />
+     <axis xyz="0 1 0"/>
+     <limit effort="30" velocity="1.5" lower="-2.8" upper="2.8" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="wam_j4_joint" type="revolute">
+     <origin xyz="0.045 -0.55 0.0" rpy="1.57079633 0 0" /> 
+     <parent link="j3"/>
+     <child link="j4" />
+     <axis xyz="0 1 0"/>
+     <limit effort="30" velocity="1.5" lower="-0.9" upper="3.1" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="wam_j5_joint" type="revolute">
+     <origin xyz="-0.045 0.0 0.3" rpy="1.57079633 0 0" /> 
+     <parent link="j4"/>
+     <child link="j5" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="-4.76" upper="1.24" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="wam_j6_joint" type="revolute">
+     <origin xyz="0.0 0.0 0.0" rpy="-1.57079633 0 0" /> 
+     <parent link="j5"/>
+     <child link="j6" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="-1.5" upper="1.5" />
+     <joint_properties damping="100.0" friction="10000" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="wam_j7_joint" type="revolute">
+     <origin xyz="0.0 0.0 0.06" rpy="0 0 0" /> 
+     <parent link="j6"/>
+     <child link="j7" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="-3.0" upper="3.0" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_base_joint" type="fixed">
+    <parent link="j7"/>
+    <child link="bhand_base" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+  
+  <joint name="bhand_j11_joint" type="revolute">
+     <origin xyz="-0.02475 0.0 0.0395" rpy="0.0 0 1.57079633" /> 
+     <parent link="bhand_base"/>
+     <child link="bhand_link11" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.0" upper="3.14159265" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j21_joint" type="revolute">
+     <origin xyz="0.02475 0.0 0.0395" rpy="0.0 0.0 1.57079633" /> 
+     <parent link="bhand_base"/>
+     <child link="bhand_link21" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="-3.14159265" upper="0.0" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j12_joint" type="revolute">
+     <origin xyz="0.050 0.0 0.038" rpy="1.57079633 0 0.0" /> 
+     <parent link="bhand_link11"/>
+     <child link="bhand_link12" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.0" upper="2.44346095" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j22_joint" type="revolute">
+     <origin xyz="0.050 0.0 0.038" rpy="1.57079633 0 0.0" /> 
+     <parent link="bhand_link21"/>
+     <child link="bhand_link22" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.0" upper="2.44346095" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j32_joint" type="revolute">
+     <origin xyz="0.0 0.050 0.0775" rpy="1.57079633 0 1.57079633" /> 
+     <parent link="bhand_base"/>
+     <child link="bhand_link32" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.0" upper="2.44346095" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j13_joint" type="revolute">
+     <origin xyz="0.070 0.0 0.0" rpy="0.0 0 0.0" /> 
+     <parent link="bhand_link12"/>
+     <child link="bhand_link13" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.698131701" upper="2.44346095" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j23_joint" type="revolute">
+     <origin xyz="0.070 0.0 0.0" rpy="0.0 0 0.0" /> 
+     <parent link="bhand_link22"/>
+     <child link="bhand_link23" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.698131701" upper="2.44346095" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  <joint name="bhand_j33_joint" type="revolute">
+     <origin xyz="0.070 0.0 0.0" rpy="0.0 0 0.0" /> 
+     <parent link="bhand_link32"/>
+     <child link="bhand_link33" />
+     <axis xyz="0 0 1"/>
+     <limit effort="30" velocity="1.5" lower="0.698131701" upper="2.44346095" />
+     <joint_properties damping="100.0" friction="1000.0" />
+     <dynamics damping="1000"/>
+  </joint >
+  
+  #Adding Gazebo Requirements
+  <gazebo reference="wam_world">
+     <material>Gazebo/White</material>
+     <selfCollide>true</selfCollide>
+  </gazebo>
+  
+  <gazebo reference="wam_base">
+     <material>Gazebo/White</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>
+  
+  <gazebo reference="j1">
+     <material>Gazebo/White</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>
+  
+  <gazebo reference="j2">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>
+  
+  <gazebo reference="j3">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>
+  
+  <gazebo reference="j4">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>  
+  
+  <gazebo reference="j5">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>  
+  
+  <gazebo reference="j6">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>      
+  
+  <gazebo reference="j7">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo>  
+  
+  <gazebo reference="bhand_base">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link11">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link21">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link12">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link22">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link32">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link13">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+    
+  <gazebo reference="bhand_link23">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  <gazebo reference="bhand_link33">
+     <material>Gazebo/Grey</material>
+     <selfCollide>true</selfCollide>
+     <turnGravityOff>true</turnGravityOff>
+  </gazebo> 
+  
+  #Adding Transmissions
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j1_transmission">
+     <actuator name="j1" />
+     <joint name="wam_j1_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j2_transmission">
+     <actuator name="j2" />
+     <joint name="wam_j2_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j3_transmission">
+     <actuator name="j3" />
+     <joint name="wam_j3_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j4_transmission">
+     <actuator name="j4" />
+     <joint name="wam_j4_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j5_transmission">
+     <actuator name="j5" />
+     <joint name="wam_j5_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j6_transmission">
+     <actuator name="j6" />
+     <joint name="wam_j6_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="j7_transmission">
+     <actuator name="j7" />
+     <joint name="wam_j7_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  #FINGER TRANSMISSIONS
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f11_transmission">
+     <actuator name="bhand_link11" />
+     <joint name="bhand_f11_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f21_transmission">
+     <actuator name="bhand_link21" />
+     <joint name="bhand_f21_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f12_transmission">
+     <actuator name="bhand_link12" />
+     <joint name="bhand_f12_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f22_transmission">
+     <actuator name="bhand_link22" />
+     <joint name="bhand_f22_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f32_transmission">
+     <actuator name="bhand_link32" />
+     <joint name="bhand_f32_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f13_transmission">
+     <actuator name="bhand_link13" />
+     <joint name="bhand_f13_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f23_transmission">
+     <actuator name="bhand_link23" />
+     <joint name="bhand_f23_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+  <transmission type="pr2_mechanism_model/SimpleTransmission" name="f33_transmission">
+     <actuator name="bhand_link33" />
+     <joint name="bhand_f33_joint" />
+     <mechanicalReduction>1</mechanicalReduction>
+     <motorTorqueConstant>1</motorTorqueConstant>
+  </transmission>
+  
+</robot>

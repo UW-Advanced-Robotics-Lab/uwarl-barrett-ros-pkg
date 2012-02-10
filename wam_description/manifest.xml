@@ -1,0 +1,24 @@
+<package>
+  <description brief="wam_description">
+
+     4-DOF WAM, 7-DOF WAM, BarrettHand, and FT Sensor meshes and urdfs
+     for description of Barrett Technology's products. 
+
+  </description>
+  <author>Kyle Maroney, Barrett Technology Inc.</author>
+  <license>BSD</license>
+  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/wam_description</url>
+  <depend package ="urdf"/>
+  <depend package="convex_decomposition"/>
+  <depend package="gazebo"/>
+  <depend package="ivcon"/>
+
+  <export>
+    <gazebo gazebo_media_path="${prefix}" />
+  </export>
+
+</package>
+
+

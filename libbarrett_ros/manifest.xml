@@ -1,0 +1,19 @@
+<package>
+  <description brief="libbarrett for ROS">
+
+  Libbarrett robot control library ROS wrapper.  Libbarrett is written and maintained by Barrett Technology.
+
+  </description>
+  <author>Barrett Technology, Inc.</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/libbarrett</url>
+
+  <export>
+    <cpp cflags="-I${prefix}/libbarrett/include/ -I/usr/xenomai/include -D_GNU_SOURCE -D_REENTRANT -Wall -Werror-implicit-function-declaration -pipe -D__XENO__ -I/usr/local/include" lflags="-L${prefix}/libbarrett/src -Wl,-rpath,${prefix}/libbarrett/src -lbarrett -lnative -L/usr/xenomai/lib -lxenomai -lpthread -lrt -L/usr/local/lib -lgsl -lgslcblas -lm" />
+  </export>
+
+  <export>
+    <rosdoc external="http://web.barrett.com/libbarrett/" />
+  </export>
+
+</package>

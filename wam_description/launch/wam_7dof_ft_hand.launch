@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find gazebo_worlds)/launch/empty_world.launch"/>
+  
+  <param name="spawn_wam" textfile="$(find wam_description)/urdf/wam_7dof_ft_hand.urdf" />
+  
+  <node name="spawn_wam_object" pkg="gazebo" type="spawn_model" args="-urdf -param spawn_wam -model wam_7dof_ft_hand -J wam_j3_joint 0.4" respawn="false" output="screen" />
+</launch>

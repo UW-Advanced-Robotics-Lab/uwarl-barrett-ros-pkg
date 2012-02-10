@@ -1,0 +1,17 @@
+<package>
+  <description brief="wam_node">
+
+     Barrett Technology ROS node for 4-DOF and 7-DOF WAM.
+
+  </description>
+  <author>Barrett Technology Inc., Kyle Maroney</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/wam_node</url>
+  <depend package="std_msgs"/>
+  <depend package="std_srvs"/>
+  <depend package="roscpp"/>
+  <depend package="libbarrett_ros"/>
+</package>
+
+
