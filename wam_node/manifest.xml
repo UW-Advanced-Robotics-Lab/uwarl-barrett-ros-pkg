@@ -10,7 +10,10 @@
   <url>http://ros.org/wiki/wam_node</url>
   <depend package="std_msgs"/>
   <depend package="std_srvs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
   <depend package="roscpp"/>
+  <depend package="actionlib"/>
   <depend package="libbarrett_ros"/>
 </package>
 
