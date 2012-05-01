@@ -1,9 +1,0 @@
-<stack>
-  <description brief="barrett-ros-pkg">barrett-ros-pkg</description>
-  <author>Barrett Technology Inc.</author>
-  <license>BSD</license>  
-  <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/barrett-ros-pkg</url>
-  <depend stack="ros" />
-
-</stack>
