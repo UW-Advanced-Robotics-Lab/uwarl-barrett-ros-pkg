@@ -1,0 +1,10 @@
+<stack>
+  <description brief="wam_common">
+
+       Stack describing common messages / service / launch files for the Barrett Technology WAM and BarrettHand 
+  </description>
+  <author>Maintained by Barrett Techonlogy Inc., Kyle Maroney</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/wam_common</url>
+  <depend stack="ros" />
+</stack>
