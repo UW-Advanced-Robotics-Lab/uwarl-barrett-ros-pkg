@@ -9,7 +9,7 @@ products, including the WAM Arm and the BH8-280 BarrettHand.
 Our ROS repository requires an installed version of Libbarrett.  To check out 
 the latest version of Libbarrett:
 
-svn http://web.barrett.com/svn/libbarrett/tags/libbarrett-1.0.0rc1
+svn http://web.barrett.com/svn/libbarrett/tags/libbarrett-1.0.0
 
 Please view the README.txt file within Libbarrett for installation instructions.
 
