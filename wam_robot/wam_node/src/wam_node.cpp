@@ -1,3 +1,32 @@
+/*
+        Copyright 2012 Barrett Technology <support@barrett.com>
+
+        This file is part of barrett-ros-pkg.
+
+        This version of barrett-ros-pkg is free software: you can redistribute it
+        and/or modify it under the terms of the GNU General Public License as
+        published by the Free Software Foundation, either version 3 of the
+        License, or (at your option) any later version.
+
+        This version of barrett-ros-pkg is distributed in the hope that it will be
+        useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License along
+        with this version of barrett-ros-pkg.  If not, see
+        <http://www.gnu.org/licenses/>.
+
+        Barrett Technology holds all copyrights on barrett-ros-pkg. As the sole
+        copyright holder, Barrett reserves the right to release future versions 
+        of barrett-ros-pkg under a different license.
+	
+        File: wam_node.cpp
+        Date: 5 June, 2012
+        Author: Kyle Maroney
+*/
+
+
 #include <unistd.h>
 #include <math.h>
 
@@ -38,27 +67,6 @@ static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Freque
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
 using namespace barrett;
-
-//Some templated functions for 4-dof & 7-dof interchangeability
-template<size_t DOF>
-  systems::Wam<DOF>*
-  getWam(ProductManager& pm)
-  {
-    assert(false);
-    return NULL;
-  }
-template<>
-  systems::Wam<7>*
-  getWam(ProductManager& pm)
-  {
-    return pm.getWam7(false);
-  }
-template<>
-  systems::Wam<4>*
-  getWam(ProductManager& pm)
-  {
-    return pm.getWam4(false);
-  }
 
 //Creating a templated multiplier for our real-time computation
 template<typename T1, typename T2, typename OutputType>

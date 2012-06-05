@@ -4,7 +4,7 @@
   barrett-ros-pkg is based on Barrett Technology's libbarrett C++ Control Library.  The following stack describing packages designed to run on a 4-DOF or 7-DOF WAM with or without a BarrettHand via the onboard WAM PC or external control PC.
 
   <author>Barrett Technology Inc., Kyle Maroney</author>
-  <license>BSD</license>
+  <license>GPL</license>
   <url>http://ros.org/wiki/wam_robot</url>
   <depend stack="ros" />
 </stack>
