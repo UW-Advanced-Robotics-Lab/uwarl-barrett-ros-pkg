@@ -1,34 +1,36 @@
 /*
-        Copyright 2012 Barrett Technology <support@barrett.com>
+ Copyright 2012 Barrett Technology <support@barrett.com>
 
-        This file is part of barrett-ros-pkg.
+ This file is part of barrett-ros-pkg.
 
-        This version of barrett-ros-pkg is free software: you can redistribute it
-        and/or modify it under the terms of the GNU General Public License as
-        published by the Free Software Foundation, either version 3 of the
-        License, or (at your option) any later version.
+ This version of barrett-ros-pkg is free software: you can redistribute it
+ and/or modify it under the terms of the GNU General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
 
-        This version of barrett-ros-pkg is distributed in the hope that it will be
-        useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+ This version of barrett-ros-pkg is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-        You should have received a copy of the GNU General Public License along
-        with this version of barrett-ros-pkg.  If not, see
-        <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License along
+ with this version of barrett-ros-pkg.  If not, see
+ <http://www.gnu.org/licenses/>.
 
-        Barrett Technology holds all copyrights on barrett-ros-pkg. As the sole
-        copyright holder, Barrett reserves the right to release future versions 
-        of barrett-ros-pkg under a different license.
-	
-        File: wam_node.cpp
-        Date: 5 June, 2012
-        Author: Kyle Maroney
-*/
+ Barrett Technology holds all copyrights on barrett-ros-pkg. As the sole
+ copyright holder, Barrett reserves the right to release future versions
+ of barrett-ros-pkg under a different license.
 
+ File: wam_node.cpp
+ Date: 5 June, 2012
+ Author: Kyle Maroney
+ */
 
 #include <unistd.h>
 #include <math.h>
+
+#include <boost/thread.hpp> // BarrettHand threading
+#include <boost/bind.hpp>
 
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
@@ -64,6 +66,7 @@
 #include <barrett/detail/stl_utils.h>
 
 static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
+static const int BHAND_PUBLISH_FREQ = 10; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
 using namespace barrett;
@@ -79,7 +82,7 @@ template<typename T1, typename T2, typename OutputType>
 
   public:
     Multiplier(std::string sysName = "Multiplier") :
-      systems::System(sysName), systems::SingleOutput<OutputType>(this), input1(this), input2(this)
+        systems::System(sysName), systems::SingleOutput<OutputType>(this), input1(this), input2(this)
     {
     }
     virtual ~Multiplier()
@@ -110,7 +113,7 @@ public:
 
 public:
   ToQuaternion(std::string sysName = "ToQuaternion") :
-    systems::SingleIO<math::Vector<3>::type, Eigen::Quaterniond>(sysName)
+      systems::SingleIO<math::Vector<3>::type, Eigen::Quaterniond>(sysName)
   {
   }
   virtual ~ToQuaternion()
@@ -215,7 +218,7 @@ template<size_t DOF>
 
   public:
     WamNode(systems::Wam<DOF>& wam_) :
-      wam(wam_), hand(NULL), ramp(NULL, SPEED)
+        wam(wam_), hand(NULL), ramp(NULL, SPEED)
     {
     }
     void
@@ -274,7 +277,9 @@ template<size_t DOF>
     void
     cartPosCB(const wam_msgs::RTCartPos::ConstPtr& msg);
     void
-    publish(ProductManager& pm);
+    publishWam(ProductManager& pm);
+    void
+    publishHand(void);
     void
     updateRT(ProductManager& pm);
   };
@@ -302,6 +307,10 @@ template<size_t DOF>
     {
       std::cout << "Barrett Hand" << std::endl;
       hand = pm.getHand();
+
+      // Adjust the torque limits to allow for BarrettHand movements at extents
+      pm.getSafetyModule()->setTorqueLimit(3.0);
+
       // Move j3 in order to give room for hand initialization
       jp_type jp_init = wam.getJointPositions();
       jp_init[3] -= 0.35;
@@ -313,7 +322,7 @@ template<size_t DOF>
       hand->update();
 
       //Publishing the following topics only if there is a BarrettHand present
-      bhand_joint_state_pub = nh_.advertise<sensor_msgs::JointState> ("joint_states", 1); // bhand/joint_states
+      bhand_joint_state_pub = nh_.advertise < sensor_msgs::JointState > ("joint_states", 1); // bhand/joint_states
 
       //Advertise the following services only if there is a BarrettHand present
       hand_open_grsp_srv = nh_.advertiseService("open_grasp", &WamNode<DOF>::handOpenGrasp, this); // bhand/open_grasp
@@ -329,7 +338,7 @@ template<size_t DOF>
 
       //Set up the BarrettHand joint state publisher
       const char* bhand_jnts[] = {"inner_f1", "inner_f2", "inner_f3", "spread", "outer_f1", "outer_f2", "outer_f3"};
-      std::vector<std::string> bhand_joints(bhand_jnts, bhand_jnts + 7);
+      std::vector < std::string > bhand_joints(bhand_jnts, bhand_jnts + 7);
       bhand_joint_state.name.resize(7);
       bhand_joint_state.name = bhand_joints;
       bhand_joint_state.position.resize(7);
@@ -339,7 +348,7 @@ template<size_t DOF>
 
     //Setting up WAM joint state publisher
     const char* wam_jnts[] = {"wam_j1", "wam_j2", "wam_j3", "wam_j4", "wam_j5", "wam_j6", "wam_j7"};
-    std::vector<std::string> wam_joints(wam_jnts, wam_jnts + 7);
+    std::vector < std::string > wam_joints(wam_jnts, wam_jnts + 7);
     wam_joint_state.name = wam_joints;
     wam_joint_state.name.resize(DOF);
     wam_joint_state.position.resize(DOF);
@@ -347,8 +356,8 @@ template<size_t DOF>
     wam_joint_state.effort.resize(DOF);
 
     //Publishing the following rostopics
-    wam_joint_state_pub = n_.advertise<sensor_msgs::JointState> ("joint_states", 1); // wam/joint_states
-    wam_pose_pub = n_.advertise<geometry_msgs::PoseStamped> ("pose", 1); // wam/pose
+    wam_joint_state_pub = n_.advertise < sensor_msgs::JointState > ("joint_states", 1); // wam/joint_states
+    wam_pose_pub = n_.advertise < geometry_msgs::PoseStamped > ("pose", 1); // wam/pose
 
     //Subscribing to the following rostopics
     cart_vel_sub = n_.subscribe("cart_vel_cmd", 1, &WamNode::cartVelCB, this); // wam/cart_vel_cmd
@@ -367,7 +376,6 @@ template<size_t DOF>
     pose_move_srv = n_.advertiseService("pose_move", &WamNode::poseMove, this); // wam/pose_move
     cart_move_srv = n_.advertiseService("cart_move", &WamNode::cartMove, this); // wam/cart_pos_move
     ortn_move_srv = n_.advertiseService("ortn_move", &WamNode::ortnMove, this); // wam/ortn_move
-
 
   }
 
@@ -547,7 +555,8 @@ template<size_t DOF>
 template<size_t DOF>
   bool WamNode<DOF>::handFingerPos(wam_srvs::BHandFingerPos::Request &req, wam_srvs::BHandFingerPos::Response &res)
   {
-    ROS_INFO("Moving BarrettHand to Finger Positions: %.3f, %.3f, %.3f radians", req.radians[0], req.radians[1],req.radians[2]);
+    ROS_INFO("Moving BarrettHand to Finger Positions: %.3f, %.3f, %.3f radians", req.radians[0], req.radians[1],
+             req.radians[2]);
     hand->trapezoidalMove(Hand::jp_type(req.radians[0], req.radians[1], req.radians[2], 0.0), Hand::GRASP, false);
     return true;
   }
@@ -574,7 +583,8 @@ template<size_t DOF>
 template<size_t DOF>
   bool WamNode<DOF>::handFingerVel(wam_srvs::BHandFingerVel::Request &req, wam_srvs::BHandFingerVel::Response &res)
   {
-    ROS_INFO("Moving BarrettHand Finger Velocities: %.3f, %.3f, %.3f m/s", req.velocity[0], req.velocity[1], req.velocity[2]);
+    ROS_INFO("Moving BarrettHand Finger Velocities: %.3f, %.3f, %.3f m/s", req.velocity[0], req.velocity[1],
+             req.velocity[2]);
     hand->velocityMove(Hand::jv_type(req.velocity[0], req.velocity[1], req.velocity[2], 0.0), Hand::GRASP);
     return true;
   }
@@ -684,9 +694,9 @@ template<size_t DOF>
     last_cart_pos_msg_time = ros::Time::now();
   }
 
-//Function to update the publisher
+//Function to update the WAM publisher
 template<size_t DOF>
-  void WamNode<DOF>::publish(ProductManager& pm)
+  void WamNode<DOF>::publishWam(ProductManager& pm)
   {
     //Current values to be published
     jp_type jp = wam.getJointPositions();
@@ -715,25 +725,30 @@ template<size_t DOF>
     wam_pose.pose.orientation.y = to_pub.y();
     wam_pose.pose.orientation.z = to_pub.z();
     wam_pose_pub.publish(wam_pose);
+  }
 
-    //publishing sensor_msgs/JointState to bhand/joint_states if present
-    if (hand != NULL)
+//Function to update the real-time control loops
+template<size_t DOF>
+  void WamNode<DOF>::publishHand() //systems::PeriodicDataLogger<debug_tuple>& logger
+  {
+    while (ros::ok())
     {
-      hand->update();
-      Hand::jp_type hi = hand->getInnerLinkPosition();
+      hand->update(); // Update the hand sensors
+      Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
       Hand::jp_type ho = hand->getOuterLinkPosition();
-      for (size_t i = 0; i < 4; i++)
+      for (size_t i = 0; i < 4; i++) // Save finger positions
         bhand_joint_state.position[i] = hi[i];
       for (size_t j = 0; j < 3; j++)
         bhand_joint_state.position[j + 4] = ho[j];
-      bhand_joint_state.header.stamp = ros::Time::now();
-      bhand_joint_state_pub.publish(bhand_joint_state);
+      bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
+      bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
+      btsleep(1.0 / BHAND_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
     }
   }
 
 //Function to update the real-time control loops
 template<size_t DOF>
-  void WamNode<DOF>::updateRT(ProductManager& pm)//systems::PeriodicDataLogger<debug_tuple>& logger
+  void WamNode<DOF>::updateRT(ProductManager& pm) //systems::PeriodicDataLogger<debug_tuple>& logger
   {
     //Real-Time Cartesian Velocity Control Portion
     if (last_cart_vel_msg_time + rt_msg_timeout > ros::Time::now()) // checking if a cartesian velocity message has been published and if it is within timeout
@@ -747,8 +762,8 @@ template<size_t DOF>
         systems::forceConnect(cart_dir.output, mult_linear.input2); // connecting the direction to the multiplier
         systems::forceConnect(mult_linear.output, cart_pos_sum.getInput(0)); // adding the output of the multiplier
         systems::forceConnect(current_cart_pos.output, cart_pos_sum.getInput(1)); // with the starting cartesian position offset
-        systems::forceConnect(cart_pos_sum.output, rt_pose_cmd.getInput<0> ()); // saving summed position as new commanded pose.position
-        systems::forceConnect(current_ortn.output, rt_pose_cmd.getInput<1> ()); // saving the original orientation to the pose.orientation
+        systems::forceConnect(cart_pos_sum.output, rt_pose_cmd.getInput<0>()); // saving summed position as new commanded pose.position
+        systems::forceConnect(current_ortn.output, rt_pose_cmd.getInput<1>()); // saving the original orientation to the pose.orientation
         ramp.setSlope(cart_vel_mag); // setting the slope to the commanded magnitude
         ramp.stop(); // ramp is stopped on startup
         ramp.setOutput(0.0); // ramp is re-zeroed on startup
@@ -782,8 +797,8 @@ template<size_t DOF>
         systems::forceConnect(mult_angular.output, ortn_cmd_sum.getInput(0)); // adding the output of the multiplier
         systems::forceConnect(current_rpy_ortn.output, ortn_cmd_sum.getInput(1)); // with the starting rpy orientation offset
         systems::forceConnect(ortn_cmd_sum.output, to_quat.input);
-        systems::forceConnect(current_cart_pos.output, rt_pose_cmd.getInput<0> ()); // saving the original position to the pose.position
-        systems::forceConnect(to_quat.output, rt_pose_cmd.getInput<1> ()); // saving the summed and converted new quaternion commmand as the pose.orientation
+        systems::forceConnect(current_cart_pos.output, rt_pose_cmd.getInput<0>()); // saving the original position to the pose.position
+        systems::forceConnect(to_quat.output, rt_pose_cmd.getInput<1>()); // saving the summed and converted new quaternion commmand as the pose.orientation
         ramp.setSlope(ortn_vel_mag); // setting the slope to the commanded magnitude
         ramp.stop(); // ramp is stopped on startup
         ramp.setOutput(0.0); // ramp is re-zeroed on startup
@@ -792,7 +807,8 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());//Forces us into real-time
+        BARRETT_SCOPED_LOCK(pm.getMutex());
+        //Forces us into real-time
         ramp.reset(); // reset the ramp to 0
         ramp.setSlope(ortn_vel_mag); // updating the commanded angular velocity magnitude
         rpy_cmd.setValue(rt_ortn_cmd); // set our angular rpy command to subscribed command
@@ -803,7 +819,7 @@ template<size_t DOF>
     }
 
     //Real-Time Joint Velocity Control Portion
-    else if (last_jnt_vel_msg_time + rt_msg_timeout > ros::Time::now())// checking if a joint velocity message has been published and if it is within timeout
+    else if (last_jnt_vel_msg_time + rt_msg_timeout > ros::Time::now()) // checking if a joint velocity message has been published and if it is within timeout
     {
       if (!jnt_vel_status)
       {
@@ -815,7 +831,8 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());//Forces us into real-time
+        BARRETT_SCOPED_LOCK(pm.getMutex());
+        //Forces us into real-time
         jv_track.setValue(rt_jv_cmd); // set our joint velocity to subscribed command
       }
       jnt_vel_status = true;
@@ -823,7 +840,7 @@ template<size_t DOF>
     }
 
     //Real-Time Joint Position Control Portion
-    else if (last_jnt_pos_msg_time + rt_msg_timeout > ros::Time::now())// checking if a joint position message has been published and if it is within timeout
+    else if (last_jnt_pos_msg_time + rt_msg_timeout > ros::Time::now()) // checking if a joint position message has been published and if it is within timeout
     {
       if (!jnt_pos_status)
       {
@@ -835,7 +852,8 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());//Forces us into real-time
+        BARRETT_SCOPED_LOCK(pm.getMutex());
+        //Forces us into real-time
         jp_track.setValue(rt_jp_cmd); // set our joint position to subscribed command
         jp_rl.setLimit(rt_jp_rl); // set our rate limit to subscribed rate to control the rate of the moves
       }
@@ -852,13 +870,14 @@ template<size_t DOF>
         current_ortn.setValue(wam.getToolOrientation()); // Initializing the orientation
         cp_rl.setLimit(rt_cp_rl);
         systems::forceConnect(cp_track.output, cp_rl.input);
-        systems::forceConnect(cp_rl.output, rt_pose_cmd.getInput<0> ()); // saving the rate limited cartesian position command to the pose.position
-        systems::forceConnect(current_ortn.output, rt_pose_cmd.getInput<1> ());// saving the original orientation to the pose.orientation
+        systems::forceConnect(cp_rl.output, rt_pose_cmd.getInput<0>()); // saving the rate limited cartesian position command to the pose.position
+        systems::forceConnect(current_ortn.output, rt_pose_cmd.getInput<1>()); // saving the original orientation to the pose.orientation
         wam.trackReferenceSignal(rt_pose_cmd.output); //Commanding the WAM to track the real-time pose command.
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());//Forces us into real-time
+        BARRETT_SCOPED_LOCK(pm.getMutex());
+        //Forces us into real-time
         cp_track.setValue(rt_cp_cmd); // Set our cartesian positions to subscribed command
         cp_rl.setLimit(rt_cp_rl); // Updating the rate limit to subscribed rate to control the rate of the moves
       }
@@ -884,10 +903,13 @@ template<size_t DOF>
     wam_node.init(pm);
     ros::Rate pub_rate(PUBLISH_FREQ);
 
+    if (pm.getHand())
+      boost::thread handPubThread(&WamNode<DOF>::publishHand, &wam_node);
+
     while (ros::ok() && pm.getSafetyModule()->getMode() == SafetyModule::ACTIVE)
     {
       ros::spinOnce();
-      wam_node.publish(pm);
+      wam_node.publishWam(pm);
       wam_node.updateRT(pm);
       pub_rate.sleep();
     }
