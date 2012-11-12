@@ -66,7 +66,7 @@
 #include <barrett/detail/stl_utils.h>
 
 static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
-static const int BHAND_PUBLISH_FREQ = 10; // Publishing Frequency for the BarretHand
+static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
 using namespace barrett;
@@ -772,8 +772,6 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());
-        //Forces us into real-time
         ramp.reset(); // reset the ramp to 0
         ramp.setSlope(cart_vel_mag);
         cart_dir.setValue(rt_cv_cmd); // set our cartesian direction to subscribed command
@@ -807,8 +805,6 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());
-        //Forces us into real-time
         ramp.reset(); // reset the ramp to 0
         ramp.setSlope(ortn_vel_mag); // updating the commanded angular velocity magnitude
         rpy_cmd.setValue(rt_ortn_cmd); // set our angular rpy command to subscribed command
@@ -831,8 +827,6 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());
-        //Forces us into real-time
         jv_track.setValue(rt_jv_cmd); // set our joint velocity to subscribed command
       }
       jnt_vel_status = true;
@@ -852,8 +846,6 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());
-        //Forces us into real-time
         jp_track.setValue(rt_jp_cmd); // set our joint position to subscribed command
         jp_rl.setLimit(rt_jp_rl); // set our rate limit to subscribed rate to control the rate of the moves
       }
@@ -876,8 +868,6 @@ template<size_t DOF>
       }
       else if (new_rt_cmd)
       {
-        BARRETT_SCOPED_LOCK(pm.getMutex());
-        //Forces us into real-time
         cp_track.setValue(rt_cp_cmd); // Set our cartesian positions to subscribed command
         cp_rl.setLimit(rt_cp_rl); // Updating the rate limit to subscribed rate to control the rate of the moves
       }
