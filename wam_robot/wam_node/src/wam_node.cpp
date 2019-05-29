@@ -313,6 +313,7 @@ template<size_t DOF>
     jp_home = wam.getJointPositions();
 
     if (pm.foundForceTorqueSensor()) {
+      std::cout << "Force/Torque sensor" << std::endl;
       fts = pm.getForceTorqueSensor();
 	  fts->tare();
 	  
