@@ -12,7 +12,6 @@
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="roscpp"/>
-  <depend package="bullet"/>
   <depend package="tf"/>
   <depend package="wam_msgs"/>
   <depend package="wam_srvs"/>

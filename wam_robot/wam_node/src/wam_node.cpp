@@ -1,5 +1,5 @@
 /*
- Copyright 2012 Barrett Technology <support@barrett.com>
+ Copyright 2019 Barrett Technology <support@barrett.com>
 
  This file is part of barrett-ros-pkg.
 
@@ -22,8 +22,8 @@
  of barrett-ros-pkg under a different license.
 
  File: wam_node.cpp
- Date: 5 June, 2012
- Author: Kyle Maroney
+ Date edited: 29 May, 2019
+ Authors: Kyle Maroney, Alexandros Lioulemes
  */
 
 #include <unistd.h>
@@ -56,6 +56,7 @@
 #include "std_srvs/Empty.h"
 #include "sensor_msgs/JointState.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Wrench.h"
 
 #include <barrett/math.h> 
 #include <barrett/units.h>
@@ -122,7 +123,7 @@ public:
   }
 
 protected:
-  btQuaternion q;
+  tf::Quaternion q;
   virtual void operate()
   {
     const math::Vector<3>::type &inputRPY = input.getValue();
@@ -145,8 +146,8 @@ public:
 math::Vector<3>::type toRPY(Eigen::Quaterniond inquat)
 {
   math::Vector<3>::type newRPY;
-  btQuaternion q(inquat.x(), inquat.y(), inquat.z(), inquat.w());
-  btMatrix3x3(q).getEulerZYX(newRPY[2], newRPY[1], newRPY[0]);
+  tf::Quaternion q(inquat.x(), inquat.y(), inquat.z(), inquat.w());
+  tf::Matrix3x3(q).getEulerZYX(newRPY[2], newRPY[1], newRPY[0]);
   return newRPY;
 }
 
@@ -161,11 +162,14 @@ template<size_t DOF>
     double cart_vel_mag, ortn_vel_mag;
     systems::Wam<DOF>& wam;
     Hand* hand;
+    ForceTorqueSensor* fts;
     jp_type jp, jp_cmd, jp_home;
     jp_type rt_jp_cmd, rt_jp_rl;
     jv_type rt_jv_cmd;
     cp_type cp_cmd, rt_cv_cmd;
     cp_type rt_cp_cmd, rt_cp_rl;
+    cf_type cf;
+    ct_type ct;
     Eigen::Quaterniond ortn_cmd, rt_op_cmd, rt_op_rl;
     pose_type pose_cmd;
     math::Vector<3>::type rt_ortn_cmd;
@@ -203,9 +207,10 @@ template<size_t DOF>
     //Published Topics
     sensor_msgs::JointState wam_joint_state, bhand_joint_state;
     geometry_msgs::PoseStamped wam_pose;
+    geometry_msgs::Wrench fts_state;
 
     //Publishers
-    ros::Publisher wam_joint_state_pub, bhand_joint_state_pub, wam_pose_pub;
+    ros::Publisher wam_joint_state_pub, bhand_joint_state_pub, wam_pose_pub, fts_pub;
 
     //Services
     ros::ServiceServer gravity_srv, go_home_srv, hold_jpos_srv, hold_cpos_srv;
@@ -218,7 +223,7 @@ template<size_t DOF>
 
   public:
     WamNode(systems::Wam<DOF>& wam_) :
-        wam(wam_), hand(NULL), ramp(NULL, SPEED)
+        wam(wam_), hand(NULL), fts(NULL), ramp(NULL, SPEED)
     {
     }
     void
@@ -281,6 +286,8 @@ template<size_t DOF>
     void
     publishHand(void);
     void
+    publishFTS(void);
+    void
     updateRT(ProductManager& pm);
   };
 
@@ -290,6 +297,8 @@ template<size_t DOF>
   {
     ros::NodeHandle n_("wam"); // WAM specific nodehandle
     ros::NodeHandle nh_("bhand"); // BarrettHand specific nodehandle
+    ros::NodeHandle fts_("fts"); // Force/Torque sensor specific nodehandle
+    
 
     //Setting up real-time command timeouts and initial values
     cart_vel_status = false; //Bool for determining cartesian velocity real-time state
@@ -302,6 +311,16 @@ template<size_t DOF>
 
     ROS_INFO(" \n %zu-DOF WAM", DOF);
     jp_home = wam.getJointPositions();
+
+    if (pm.foundForceTorqueSensor()) {
+      std::cout << "Force/Torque sensor" << std::endl;
+      fts = pm.getForceTorqueSensor();
+	  fts->tare();
+	  
+	  //Publishing the following topics only if there is a BarrettHand present
+      fts_pub = fts_.advertise < geometry_msgs::Wrench > ("fts_states", 1); // fts/states
+	  
+    }
 
     if (pm.foundHand()) //Does the following only if a BarrettHand is present
     {
@@ -745,6 +764,28 @@ template<size_t DOF>
       btsleep(1.0 / BHAND_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
     }
   }
+  
+//Function to update the real-time control loops
+template<size_t DOF>
+  void WamNode<DOF>::publishFTS() //systems::PeriodicDataLogger<debug_tuple>& logger
+  {
+    while (ros::ok())
+    {
+      fts->update(); // Update the hand sensors
+      cf = math::saturate(fts->getForce(), 99.99);
+      ct = math::saturate(fts->getTorque(), 9.999);
+      // Force vector
+      fts_state.force.x = cf[0];
+      fts_state.force.y = cf[1];
+      fts_state.force.z = cf[2];
+      // Torque vector
+      fts_state.torque.x = ct[0];
+      fts_state.torque.y = ct[1];
+      fts_state.torque.z = ct[2];
+      fts_pub.publish(fts_state);
+    }
+  }  
+
 
 //Function to update the real-time control loops
 template<size_t DOF>
@@ -892,6 +933,9 @@ template<size_t DOF>
     WamNode<DOF> wam_node(wam);
     wam_node.init(pm);
     ros::Rate pub_rate(PUBLISH_FREQ);
+
+    if (pm.getForceTorqueSensor())
+      boost::thread ftsPubThread(&WamNode<DOF>::publishFTS, &wam_node);
 
     if (pm.getHand())
       boost::thread handPubThread(&WamNode<DOF>::publishHand, &wam_node);
