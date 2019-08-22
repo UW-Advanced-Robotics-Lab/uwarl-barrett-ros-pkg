@@ -366,6 +366,7 @@ template<size_t DOF>
       const char* bhand_jnts[] = {"inner_f1", "inner_f2", "inner_f3", "spread", "outer_f1", "outer_f2", "outer_f3"};
       std::vector < std::string > bhand_joints(bhand_jnts, bhand_jnts + 7);
       tactileState.pressure.resize(24);
+      tactileState.normalizedPressure.resize(24);
       tactileStates.tactilePressures.resize(4);
       ftTorque_state.torque.resize(4);
       bhand_joint_state.name.resize(7);
@@ -769,11 +770,49 @@ template<size_t DOF>
       Hand::jp_type ho = hand->getOuterLinkPosition();
       for (int i = 0; i < tps.size(); i++)
       {
-        
         TactilePuck::v_type pressures(tps[i]->getFullData());
-        for (int j = 0; j < pressures.size(); j++)
-        {
+        for (int j = 0; j < pressures.size(); j++) {
+          int value = (int)(pressures[j] * 256.0) / 102;  // integer division
           tactileState.pressure[j] = pressures[j];
+          int c = 0;
+          int chunk;
+          for (int z = 4; z >= 0; --z) {
+            chunk = (value <= 7) ? value : 7;
+            value -= chunk;
+            switch (chunk)
+            {
+            default:
+              c = c + 4;
+              break;
+            case 2:
+              c = c + 3;
+              break;
+            case 1:
+              c = c + 2;
+              break;
+            case 0:
+              c = c + 1;
+              break;
+            }
+            switch (chunk - 4) {
+            case 3:
+              c = c + 4;
+              break;
+            case 2:
+              c = c+ 3;
+              break;
+            case 1:
+              c = c + 2;
+              break;
+            case 0:
+              c = c + 1;
+              break;
+            default:
+              c = c + 0;
+              break;
+            }
+          }
+          tactileState.normalizedPressure[j] = c - 5;
         }
         tactileStates.tactilePressures[i] = tactileState;
       }
