@@ -768,6 +768,7 @@ template<size_t DOF>
       std::vector<int> fingerTip = hand->getFingertipTorque();
       Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
       Hand::jp_type ho = hand->getOuterLinkPosition();
+      //Normalized raw pressure values to interpretable measurements.
       for (int i = 0; i < tps.size(); i++)
       {
         TactilePuck::v_type pressures(tps[i]->getFullData());
