@@ -3,8 +3,8 @@
 
 ## Overview
 This is Barrett Technology's ROS repository wrapping Libbarrett's functionalities.  Libbarrett is a real-time controls library written in C++ that runs Barrett Technology's products, including the WAM Arm and the BH8-282 BarrettHand.
-- wam_robot stack is designed to be run on a WAM PC-104 or external control PC.
-- wam_common stack is designed as the interface to communicate with the 
+- The `wam_robot` stack is designed to be run on a WAM PC-104 or external control PC.
+- The `wam_common` stack is designed as the interface to communicate with the 
 functionality exposed by the wam_node.
 
 ### Pre-Requisites
@@ -22,11 +22,11 @@ roslaunch wam_node wam_node.launch
 ```
 	
 ### Example of running the services
-Move BHand finger 2.
+Move BHand fingers.
 ```
 rosservice call /bhand/finger_pos "radians:
 - 0.0
-- 0.5
+- 0.0
 - 0.0" 
 ```
 
