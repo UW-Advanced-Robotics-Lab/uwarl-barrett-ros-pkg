@@ -22,32 +22,48 @@ roslaunch wam_node wam_node.launch
 ```
 	
 ### Example of running the services
-Move BHand fingers.
+**Move BHand Fingers:**
 ```
 rosservice call /bhand/finger_pos "radians:
-- 0.0
-- 0.0
-- 0.0" 
+ 0.0
+ 0.0
+ 0.0" 
 ```
 
-Move WAM joints
+**Move WAM Joints:**
 ```
 rosservice call /wam/joint_move "joints:
-- 0.0
-- 0.0
-- 0.0
-- 0.0
-- 0.0
-- 0.0
-- 0.0"
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0"
 ```
-
-Hold Joint Position
+**Move WAM to Tool Pose:**
+```
+rosservice call /wam/pose_move "pose:
+  position:
+    x: 0.048
+    y: 0.0
+    z: 0.618
+  orientation:
+    x: -0.0190
+    y: 0.9022
+    z: -0.2516
+    w: -0.3498"
+```
+**Move WAM Home:**
+```
+rosservice call /wam/go_home
+```
+**Hold Joint Positions:**
 ```
 rosservice call /wam/hold_joint_pos "hold: true"
 ```
 
-Unhold Joint Position
+**Unhold Joint Positions:**
 ```
 rosservice call /wam/hold_joint_pos "hold: false"
 ```

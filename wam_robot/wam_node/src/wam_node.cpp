@@ -507,8 +507,8 @@ template<size_t DOF>
 
     pose_cmd = boost::make_tuple(cp_cmd, ortn_cmd);
 
-    wam.moveTo(pose_cmd, false); //(TODO:KM Update Libbarrett API for Pose Moves)
-    //ROS_INFO("Pose Commands for WAM not yet supported by API");
+    wam.moveTo(pose_cmd, false);
+    ROS_INFO("Moving Robot to Commanded Cartesian Pose");
     return true;
   }
 
