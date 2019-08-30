@@ -429,13 +429,7 @@ template<size_t DOF>
       hand->open(Hand::GRASP, true);
       hand->close(Hand::SPREAD, true);
     }
-    for (size_t i = 0; i < DOF; i++)
-      jp_cmd[i] = 0.0;
-    wam.moveTo(jp_cmd, true);
-    jp_home[3] -= 0.3;
-    wam.moveTo(jp_home, true);
-    jp_home[3] += 0.3;
-    wam.moveTo(jp_home, true);
+    wam.moveHome();
     return true;
   }
 
@@ -513,9 +507,9 @@ template<size_t DOF>
 
     pose_cmd = boost::make_tuple(cp_cmd, ortn_cmd);
 
-    //wam.moveTo(pose_cmd, false); //(TODO:KM Update Libbarrett API for Pose Moves)
-    ROS_INFO("Pose Commands for WAM not yet supported by API");
-    return false;
+    wam.moveTo(pose_cmd, false); //(TODO:KM Update Libbarrett API for Pose Moves)
+    //ROS_INFO("Pose Commands for WAM not yet supported by API");
+    return true;
   }
 
 //Function to command a cartesian move to the WAM
@@ -768,7 +762,6 @@ template<size_t DOF>
       std::vector<int> fingerTip = hand->getFingertipTorque();
       Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
       Hand::jp_type ho = hand->getOuterLinkPosition();
-      //Normalized raw pressure values to interpretable measurements.
       for (int i = 0; i < tps.size(); i++)
       {
         TactilePuck::v_type pressures(tps[i]->getFullData());
