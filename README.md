@@ -11,6 +11,7 @@ functionality exposed by the wam_node.
 #### On  Ubuntu 14.04:
 - An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/blob/release/release-1.3.0/README.txt)
 - [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) 
+
 #### On  Ubuntu 18.04:
 - An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 -  [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
