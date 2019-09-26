@@ -22,4 +22,6 @@ include_directories(${BARRETT_INCLUDE_DIRS})
 add_definitions(${BARRETT_DEFINITIONS})
 rosbuild_add_executable(wam_node src/wam_node.cpp)
 target_link_libraries(wam_node ${BARRETT_LIBRARIES})
+rosbuild_add_executable(barrett_hand_node src/barrett_hand_node.cpp)
+target_link_libraries(barrett_hand_node ${BARRETT_LIBRARIES})
 
