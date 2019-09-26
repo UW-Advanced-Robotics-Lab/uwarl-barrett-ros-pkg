@@ -8,9 +8,13 @@ This is Barrett Technology's ROS repository wrapping Libbarrett's functionalitie
 functionality exposed by the wam_node.
 
 ### Pre-Requisites
-This ROS repository requires:
-- An installed version of Libbarrett. To check out the latest version of Libbarrett: https://git.barrett.com/software/libbarrett
-- [ROS Indigo] on Ubuntu 14.04 (http://wiki.ros.org/indigo/Installation/Ubuntu).
+#### On  Ubuntu 14.04:
+- An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/blob/release/release-1.3.0/README.txt)
+- [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) 
+
+#### On  Ubuntu 18.04:
+- An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
+-  [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
 
 ### Compile and execute package
 ```
@@ -21,25 +25,22 @@ rosmake wam_robot
 roslaunch wam_node wam_node.launch
 ```
 	
-### Example of running the services
+### Example of running the services (Tested on ROS Melodic and Indigo)
 **Move BHand Fingers:**
 ```
 rosservice call /bhand/finger_pos "radians:
- 0.0
- 0.0
- 0.0" 
+- 0.0
+- 0.0
+- 0.0" 
 ```
 
 **Move WAM Joints:**
 ```
 rosservice call /wam/joint_move "joints:
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0"
+- 0.0
+- 0.0
+- 0.0
+- 0.0"
 ```
 **Move WAM to Tool Pose:**
 ```
