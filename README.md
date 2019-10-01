@@ -25,25 +25,22 @@ rosmake wam_robot
 roslaunch wam_node wam_node.launch
 ```
 	
-### Example of running the services
+### Example of running the services (Tested on ROS Melodic and Indigo)
 **Move BHand Fingers:**
 ```
 rosservice call /bhand/finger_pos "radians:
- 0.0
- 0.0
- 0.0" 
+- 0.0
+- 0.0
+- 0.0" 
 ```
 
 **Move WAM Joints:**
 ```
 rosservice call /wam/joint_move "joints:
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0
- 0.0"
+- 0.0
+- 0.0
+- 0.0
+- 0.0"
 ```
 **Move WAM to Tool Pose:**
 ```
