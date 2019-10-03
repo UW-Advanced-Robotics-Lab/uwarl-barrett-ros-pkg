@@ -321,7 +321,7 @@ template<size_t DOF>
     if (pm.foundForceTorqueSensor()) {
       std::cout << "Force/Torque sensor" << std::endl;
       fts = pm.getForceTorqueSensor();
-	  fts->tare();
+	    fts->tare();
 	  
 	  //Publishing the following topics only if there is a BarrettHand present
       fts_pub = fts_.advertise < geometry_msgs::Wrench > ("fts_states", 1); // fts/states

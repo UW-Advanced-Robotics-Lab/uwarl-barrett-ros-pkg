@@ -62,8 +62,10 @@ using namespace barrett;
 //BarrettHandNode Class
 class BarrettHandNode
   {
+    BARRETT_UNITS_FIXED_SIZE_TYPEDEFS;
   protected:
     Hand* hand;
+    ForceTorqueSensor* fts;
     //Subscriber
     //Published Topics
     sensor_msgs::JointState bhand_joint_state;
@@ -74,7 +76,8 @@ class BarrettHandNode
     wam_msgs::FtTorques ftTorque_state;
     //Publishers
     ros::Publisher bhand_joint_state_pub, fts_pub, tps_pub, fingerTs_pub;
-
+    cf_type cf;
+    ct_type ct;
     //Services
     ros::ServiceServer hand_open_grsp_srv, hand_close_grsp_srv, hand_open_sprd_srv;
     ros::ServiceServer hand_close_sprd_srv, hand_fngr_pos_srv, hand_fngr_vel_srv;
@@ -112,7 +115,9 @@ class BarrettHandNode
     bool
     handSpreadVel(wam_srvs::BHandSpreadVel::Request &req, wam_srvs::BHandSpreadVel::Response &res);
     void
-    publishHand(void);
+    publishHand();
+    void
+    publishFTS();
   };
 
 void BarrettHandNode::init(ProductManager &pm)
@@ -120,6 +125,14 @@ void BarrettHandNode::init(ProductManager &pm)
     ros::NodeHandle nh_("bhand"); // BarrettHand specific nodehandle
     std::cout << "Barrett Hand" << std::endl;
     hand = pm.getHand();
+    if (pm.foundForceTorqueSensor())
+    {
+      std::cout << "Force/Torque sensor" << std::endl;
+      fts = pm.getForceTorqueSensor();
+	    fts->tare();
+	    //Publishing the following topics only if there is a BarrettHand present
+      fts_pub = nh_.advertise < geometry_msgs::Wrench > ("fts_states", 1); // fts/states
+    }
     usleep(500000);
     hand->initialize();
     hand->update();
@@ -230,6 +243,22 @@ bool BarrettHandNode::handSpreadVel(wam_srvs::BHandSpreadVel::Request &req, wam_
     return true;
   }
 
+void BarrettHandNode::publishFTS()
+{
+  fts->update(); // Update the hand sensors
+  cf = math::saturate(fts->getForce(), 99.99);
+  ct = math::saturate(fts->getTorque(), 9.999);
+  // Force vector
+  fts_state.force.x = cf[0];
+  fts_state.force.y = cf[1];
+  fts_state.force.z = cf[2];
+  // Torque vector
+  fts_state.torque.x = ct[0];
+  fts_state.torque.y = ct[1];
+  fts_state.torque.z = ct[2];
+  fts_pub.publish(fts_state);
+}
+
 void BarrettHandNode::publishHand()
   {
     while (ros::ok())
@@ -301,20 +330,22 @@ void BarrettHandNode::publishHand()
       fingerTs_pub.publish(ftTorque_state);
     }
   }
-  int main(int argc, char **argv)
+
+int main(int argc, char **argv)
+{
+  ProductManager pm;
+  ros::init(argc, argv, "barrett_hand_node");
+  BarrettHandNode barrett_hand_node;
+  barrett_hand_node.init(pm);
+  ros::Rate pub_rate(PUBLISH_FREQ);
+  while (ros::ok())
   {
-    ProductManager pm;
-    ros::init(argc, argv, "barrett_hand_node");
-    BarrettHandNode barrett_hand_node;
-    barrett_hand_node.init(pm);
-    ros::Rate pub_rate(PUBLISH_FREQ);
-    boost::thread handPubThread(&BarrettHandNode::publishHand, &barrett_hand_node);
-    while (ros::ok())
-    {
-      ros::spinOnce();
-      pub_rate.sleep();
-    }
-    return 0;
+    barrett_hand_node.publishHand();
+    barrett_hand_node.publishFTS();
+    ros::spinOnce();
+    pub_rate.sleep();
   }
+  return 0;
+}
 
 
