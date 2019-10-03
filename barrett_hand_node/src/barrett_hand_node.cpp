@@ -54,7 +54,8 @@
 #include <barrett/products/product_manager.h>
 #include <barrett/systems/wam.h>
 #include <barrett/detail/stl_utils.h>
-static const int BHAND_PUBLISH_FREQ = 250; // Publishing Frequency for the BarretHand
+
+static const int PUBLISH_FREQ = 250; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
 using namespace barrett;
@@ -298,7 +299,6 @@ void BarrettHandNode::publishHand()
       bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
       tps_pub.publish(tactileStates);
       fingerTs_pub.publish(ftTorque_state);
-      btsleep(1.0 / BHAND_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
     }
   }
   int main(int argc, char **argv)
