@@ -24,41 +24,42 @@
 This is Barrett Technology's ROS repository that wraps Libbarrett's functionalities and includes a ROS driver for Barrett's Perception Palm. The Perception Palm includes a LED, a Laser, two cameras and an IR Range finder. The driver for the Perception palm wraps the open source C/C++ library for Microchip's USB-to-SPI protocol coverter. Libbarrett is a real-time controls library written in C++ that runs Barrett Technology's products, including the WAM Arm and the BH8-282 BarrettHand. 
 
 - The `wam_node` stack is designed to be run on a WAM PC-104 or external control PC, and can work with the WAM with any combination of the wrist, BarrettHand and the Force/Torque sensor attached.
-- The `barrett_hand_node` stack is designed to run on an external control PC and can work with the BarrettHand standalone.
+- The `barrett_hand_node` stack is designed to run on an external control PC and can work with the BarrettHand standalone **connected via the CAN bus**.
 - The `perception_palm` stack is designed to run on an external control PC.
 - The `wam_msgs` and `wam_srvs` stacks are designed as the interface to communicate with the functionality exposed by the` wam_node`.
 
 ## Pre-Requisites
 #### On  Ubuntu 14.04:
-1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/blob/release/release-1.3.0/README.txt)
-2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) 
-3. Install libudev and wstool.
 
-```sh
+1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/blob/release/release-1.3.0/README.txt)
+
+2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu)
+
+3. Install libudev and wstool.
+```
 sudo apt-get update
 sudo apt-get install libudev-dev
 sudo apt-get install python-wstool
 ```
-
 4. Install the camera driver:
-
-```sh
+```
 sudo apt-get install ros-indigo-camera-umd
 ```
 
 #### On  Ubuntu 18.04:
 1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
-2. [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
-3. Install libudev and wstool.
 
-```sh
+2. [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
+
+3. Install libudev and wstool.
+```
 sudo apt-get update
 sudo apt-get install libudev-dev
 sudo apt-get install python-wstool
 ```
-4. Install the camera driver:
 
-```sh
+4. Install the camera driver:
+```
 sudo apt-get install ros-melodic-camera-umd
 ```
 
