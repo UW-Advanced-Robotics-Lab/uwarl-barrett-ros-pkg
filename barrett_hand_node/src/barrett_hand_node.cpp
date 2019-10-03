@@ -114,8 +114,6 @@ class BarrettHandNode
     handSpreadVel(wam_srvs::BHandSpreadVel::Request &req, wam_srvs::BHandSpreadVel::Response &res);
     void
     publishHand(void);
-    void
-    updateRT(ProductManager& pm);
   };
 
 void BarrettHandNode::init(ProductManager &pm)
