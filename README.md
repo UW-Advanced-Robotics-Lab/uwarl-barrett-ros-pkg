@@ -18,6 +18,7 @@
 	 - [Troubleshooting](#troubleshooting)
  - [Running `barrett_hand_node`](#running-barrett_hand_node)
  - [Example of running the services (Tested on ROS Melodic and Indigo)](#example-of-running-the-services-tested-on-ros-melodic-and-indigo)
+
 ## Overview
 This is Barrett Technology's ROS repository that wraps Libbarrett's functionalities and includes a ROS driver for Barrett's Perception Palm. The Perception Palm includes a LED, a Laser, two cameras and an IR Range finder. The driver for the Perception palm wraps the open source C/C++ library for Microchip's USB-to-SPI protocol coverter. Libbarrett is a real-time controls library written in C++ that runs Barrett Technology's products, including the WAM Arm and the BH8-282 BarrettHand. 
 
