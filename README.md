@@ -1,5 +1,6 @@
 # barrett-ros-pkg
 > ROS package for the Barrett WAM and related products.
+
 - [Overview](#overview)
  - [ Pre-Requisites](#pre-requisites)
  - [Compiling the package](#compiling-the-package)
@@ -32,37 +33,46 @@ This is Barrett Technology's ROS repository that wraps Libbarrett's functionalit
 1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/blob/release/release-1.3.0/README.txt)
 2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) 
 3. Install libudev and wstool.
+
 ```sh
 sudo apt-get update
 sudo apt-get install libudev-dev
 sudo apt-get install python-wstool
 ```
 4. Install the camera driver:
-```
+
+```sh
 sudo apt-get install ros-indigo-camera-umd
 ```
+
 #### On  Ubuntu 18.04:
 1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 2. [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
 3. Install libudev and wstool.
+
 ```sh
 sudo apt-get update
 sudo apt-get install libudev-dev
 sudo apt-get install python-wstool
 ```
+
 4. Install the camera driver:
-```
+
+```sh
 sudo apt-get install ros-melodic-camera-umd
 ```
+
 ## Compiling the package
 Create a new Catkin Workspace **if not already done**:
-```
+
+```sh
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/
 catkin_make
 ```
 Clone the git repository an run the build script:
-```
+
+```sh
 cd ~/catkin_ws/src
 git clone https://git.barrett.com/software/barrett-ros-pkg.git
 ./build.sh
@@ -72,12 +82,15 @@ Source the package before running, or add it to ```bashrc```:
 ```sh
 echo 'source ~/catkin_ws/devel/setup.bash' >> ~/.bashrc
 ```
+
 ## Running `wam_node`
 Launch the ```wam_node.launch``` file, **with the WAM Arm connected**:
 ```sh
 roslaunch wam_node wam_node.launch
 ```
+
 ## Running `perception_palm`
+
 ### Set up cameras:
 1. **Connect the Perception Palm to the PC** before completing the following steps.
 
@@ -142,6 +155,7 @@ Follow the onscreen instructions.
 Please refer to the ROS [Stereo](http://wiki.ros.org/camera_calibration/Tutorials/StereoCalibration)/[Monocular](http://wiki.ros.org/camera_calibration/Tutorials/MonocularCalibration) calibration package. This step is completely optional. The cameras would work even if this step is skipped.
 
 ### Running the demo
+
 1. Configure the cameras (every time you plug in the Perception Palm or reboot the computer). For one camera
 ```
 sudo rmmod uvcvideo
@@ -167,6 +181,7 @@ roslaunch perception_palm perception_palm.launch
 If the camera node fails to start in step 2, make sure the configuration you chose in step 1 matches the configuration in the launch file. See the "Set up cameras" section for details.
 
 ### Accessing the sensors
+
 While the demo is running you can access the sensors from a separate terminal.
 
 #### Viewing with rviz
@@ -208,6 +223,7 @@ By default, the two camera feeds are published at the rate of 30 fps with a reso
 While using the monocular camera mode, the images are published at the rate of 30 fps with a resolution of 1600 x 1200 to the topic barrett/palm/image_raw.<br />
 
 ### Networking
+
 This is required if you use run the ROS nodes across multiple computers. The below instructions are to setup the perception palm on the XWAM and to control it from a remote host.
 
 In the host computer, open a new terminal and ssh into the XWAM
@@ -243,10 +259,12 @@ P.S: The ROS_MASTER_URI variable would be active as long as the terminal is open
 For more information on ROS network configuration refer to [ROS documentation](http://wiki.ros.org/ROS/NetworkSetup).
 
 ### Troubleshooting
+
 Trying to restart the perception_palm package multiple times might fail with an error "Error setting SPI Parameters".
 This can be solved by unplugging and plugging back the USB to the port.
 
 ## Running `barrett_hand_node`
+
 Launch the ```barrett_hand_node.launch``` file, with the **BarrettHand connected**:
 ```sh
 roslaunch barrett_hand_node barrett_hand_node.launch
