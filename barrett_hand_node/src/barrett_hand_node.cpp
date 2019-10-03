@@ -240,7 +240,7 @@ void BarrettHandNode::publishHand()
       std::vector<int> fingerTip = hand->getFingertipTorque();
       Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
       Hand::jp_type ho = hand->getOuterLinkPosition();
-      for (int i = 0; i < tps.size(); i++)
+      for (unsigned i = 0; i < tps.size(); i++)
       {
         TactilePuck::v_type pressures(tps[i]->getFullData());
         for (int j = 0; j < pressures.size(); j++) {
@@ -288,7 +288,7 @@ void BarrettHandNode::publishHand()
         }
         tactileStates.tactilePressures[i] = tactileState;
       }
-      for (int i = 0; i < fingerTip.size(); i++)
+      for (unsigned i = 0; i < fingerTip.size(); i++)
       {
         ftTorque_state.torque[i] = fingerTip[i];
       }
