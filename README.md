@@ -56,7 +56,6 @@ sudo apt-get update
 sudo apt-get install libudev-dev
 sudo apt-get install python-wstool
 ```
-
 4. Install the camera driver:
 
 ```sh
