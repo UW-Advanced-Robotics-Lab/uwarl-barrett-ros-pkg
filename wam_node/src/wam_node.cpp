@@ -130,7 +130,7 @@ protected:
   virtual void operate()
   {
     const math::Vector<3>::type &inputRPY = input.getValue();
-    q.setEulerZYX(inputRPY[2], inputRPY[1], inputRPY[0]);
+    q.setEuler(inputRPY[2], inputRPY[1], inputRPY[0]);
     outputQuat.x() = q.getX();
     outputQuat.y() = q.getY();
     outputQuat.z() = q.getZ();
@@ -150,7 +150,7 @@ math::Vector<3>::type toRPY(Eigen::Quaterniond inquat)
 {
   math::Vector<3>::type newRPY;
   tf::Quaternion q(inquat.x(), inquat.y(), inquat.z(), inquat.w());
-  tf::Matrix3x3(q).getEulerZYX(newRPY[2], newRPY[1], newRPY[0]);
+  tf::Matrix3x3(q).getRPY(newRPY[0], newRPY[1], newRPY[2]);
   return newRPY;
 }
 
@@ -762,7 +762,7 @@ template<size_t DOF>
       std::vector<int> fingerTip = hand->getFingertipTorque();
       Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
       Hand::jp_type ho = hand->getOuterLinkPosition();
-      for (int i = 0; i < tps.size(); i++)
+      for (unsigned i = 0; i < tps.size(); i++)
       {
         TactilePuck::v_type pressures(tps[i]->getFullData());
         for (int j = 0; j < pressures.size(); j++) {
@@ -810,7 +810,7 @@ template<size_t DOF>
         }
         tactileStates.tactilePressures[i] = tactileState;
       }
-      for (int i = 0; i < fingerTip.size(); i++)
+      for (unsigned i = 0; i < fingerTip.size(); i++)
       {
         ftTorque_state.torque[i] = fingerTip[i];
       }
