@@ -123,11 +123,27 @@ class BarrettHandNode
 void BarrettHandNode::init(ProductManager &pm)
   {
     ros::NodeHandle nh_("bhand"); // BarrettHand specific nodehandle
-    std::cout << "Barrett Hand" << std::endl;
     hand = pm.getHand();
+    if (hand->hasFingertipTorqueSensors())
+    {
+      fingerTs_pub = nh_.advertise < wam_msgs::FtTorques > ("finger_tip_states", 1); // finger tip torques
+      if (hand->hasTactSensors())
+      {
+        tps_pub = nh_.advertise < wam_msgs::tactilePressureArray > ("tactile_states", 1); // tactile  sensors  
+        ROS_INFO("Barrett Hand with Fingertip Torque and Tactile Sensors");
+      }
+      else 
+      {
+        ROS_INFO("Barrett Hand with Fingertip Sensors");
+      }
+    }
+    else
+    {
+      ROS_INFO("Barrett Hand with no sensors");
+    }
     if (pm.foundForceTorqueSensor())
     {
-      std::cout << "Force/Torque sensor" << std::endl;
+      ROS_INFO("Force/Torque sensor");
       fts = pm.getForceTorqueSensor();
 	    fts->tare();
 	    //Publishing the following topics only if there is a BarrettHand present
@@ -137,8 +153,6 @@ void BarrettHandNode::init(ProductManager &pm)
     hand->initialize();
     hand->update();
     bhand_joint_state_pub = nh_.advertise < sensor_msgs::JointState > ("joint_states", 1); // bhand/joint_states
-    tps_pub = nh_.advertise < wam_msgs::tactilePressureArray > ("tactile_states", 1); // tactile  sensors
-    fingerTs_pub = nh_.advertise < wam_msgs::FtTorques > ("finger_tip_states", 1); // finger tip torques
     hand_open_grsp_srv = nh_.advertiseService("open_grasp", &BarrettHandNode::handOpenGrasp, this); // bhand/open_grasp
     hand_close_grsp_srv = nh_.advertiseService("close_grasp", &BarrettHandNode::handCloseGrasp, this); // bhand/close_grasp
     hand_open_sprd_srv = nh_.advertiseService("open_spread", &BarrettHandNode::handOpenSpread, this); // bhand/open_spread
@@ -259,74 +273,82 @@ void BarrettHandNode::publishFTS()
   fts_pub.publish(fts_state);
 }
 
-void BarrettHandNode::publishHand()
-{
-    hand->update(); // Update the hand sensors
-    std::vector<TactilePuck*> tps = hand->getTactilePucks();
-    std::vector<int> fingerTip = hand->getFingertipTorque();
-    Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
-    Hand::jp_type ho = hand->getOuterLinkPosition();
+void BarrettHandNode::publishHand() {
+  hand->update(); // Update the hand sensors
+  std::vector<int> fingerTip = hand->getFingertipTorque();
+  Hand::jp_type hi =
+      hand->getInnerLinkPosition(); // get finger positions information
+  Hand::jp_type ho = hand->getOuterLinkPosition();
+  if (hand->hasTactSensors())
+  {
+    std::vector<TactilePuck *> tps = hand->getTactilePucks();
     for (unsigned i = 0; i < tps.size(); i++)
     {
-          TactilePuck::v_type pressures(tps[i]->getFullData());
-          for (int j = 0; j < pressures.size(); j++) {
-            int value = (int)(pressures[j] * 256.0) / 102;  // integer division
-            tactileState.pressure[j] = pressures[j];
-            int c = 0;
-            int chunk;
-            for (int z = 4; z >= 0; --z) {
-              chunk = (value <= 7) ? value : 7;
-              value -= chunk;
-              switch (chunk)
-              {
-              default:
-                c = c + 4;
-                break;
-              case 2:
-                c = c + 3;
-                break;
-              case 1:
-                c = c + 2;
-                break;
-              case 0:
-                c = c + 1;
-                break;
-              }
-              switch (chunk - 4) {
-              case 3:
-                c = c + 4;
-                break;
-              case 2:
-                c = c+ 3;
-                break;
-              case 1:
-                c = c + 2;
-                break;
-              case 0:
-                c = c + 1;
-                break;
-              default:
-                c = c + 0;
-                break;
-              }
-            }
-            tactileState.normalizedPressure[j] = c - 5;
+      TactilePuck::v_type pressures(tps[i]->getFullData());
+      for (int j = 0; j < pressures.size(); j++)
+      {
+        int value = (int)(pressures[j] * 256.0) / 102; // integer division
+        tactileState.pressure[j] = pressures[j];
+        int c = 0;
+        int chunk;
+        for (int z = 4; z >= 0; --z) {
+          chunk = (value <= 7) ? value : 7;
+          value -= chunk;
+          switch (chunk)
+          {
+          default:
+            c = c + 4;
+            break;
+          case 2:
+            c = c + 3;
+            break;
+          case 1:
+            c = c + 2;
+            break;
+          case 0:
+            c = c + 1;
+            break;
           }
-          tactileStates.tactilePressures[i] = tactileState;
+          switch (chunk - 4)
+          {
+          case 3:
+            c = c + 4;
+            break;
+          case 2:
+            c = c + 3;
+            break;
+          case 1:
+            c = c + 2;
+            break;
+          case 0:
+            c = c + 1;
+            break;
+          default:
+            c = c + 0;
+            break;
+          }
         }
-        for (unsigned i = 0; i < fingerTip.size(); i++)
-        {
-          ftTorque_state.torque[i] = fingerTip[i];
-        }
-        for (size_t i = 0; i < 4; i++) // Save finger positions
-          bhand_joint_state.position[i] = hi[i];
-        for (size_t j = 0; j < 3; j++)
-          bhand_joint_state.position[j + 4] = ho[j];
-        bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
-        bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
-        tps_pub.publish(tactileStates);
-        fingerTs_pub.publish(ftTorque_state);
+        tactileState.normalizedPressure[j] = c - 5;
+      }
+      tactileStates.tactilePressures[i] = tactileState;
     }
+    tps_pub.publish(tactileStates);
+  }
+  if (hand->hasFingertipTorqueSensors())
+  {
+    for (unsigned i = 0; i < fingerTip.size(); i++)
+    {
+      ftTorque_state.torque[i] = fingerTip[i];
+    }
+    fingerTs_pub.publish(ftTorque_state);
+  }
+  for (size_t i = 0; i < 4; i++) // Save finger positions
+    bhand_joint_state.position[i] = hi[i];
+  for (size_t j = 0; j < 3; j++)
+    bhand_joint_state.position[j + 4] = ho[j];
+  bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
+  bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
+}
 
 int main(int argc, char **argv)
 {
