@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Barrett REQUIRED)
 include_directories(${BARRETT_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${BARRETT_LIBRARY_DIRS})
 add_definitions(${BARRETT_DEFINITIONS})
 catkin_package(

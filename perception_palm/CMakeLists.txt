@@ -5,6 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   message_generation
+  wam_msgs
+  wam_srvs
 )
 
 find_package(PkgConfig REQUIRED)
@@ -15,6 +17,7 @@ catkin_package(
   CATKIN_DEPENDS
   message_runtime
   wam_msgs
+  wam_srvs
 )
 
 include_directories(include
