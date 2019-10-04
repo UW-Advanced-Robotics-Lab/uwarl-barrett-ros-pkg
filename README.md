@@ -26,7 +26,7 @@ This is Barrett Technology's ROS repository that wraps Libbarrett's functionalit
 - The `wam_node` stack is designed to be run on a WAM PC-104 or external control PC, and can work with the WAM with any combination of the wrist, BarrettHand and the Force/Torque sensor attached.
 - The `barrett_hand_node` stack is designed to run on an external control PC and can work with the BarrettHand standalone **connected via the CAN bus**.
 - The `perception_palm` stack is designed to run on an external control PC.
-- The `wam_msgs` and `wam_srvs` stacks are designed as the interface to communicate with the functionality exposed by the` wam_node`.
+- The `wam_msgs`, `wam_srvs` and `wam_teleop` stacks are designed as the interface to communicate with the functionality exposed by the` wam_node`.
 
 ## Pre-Requisites
 #### On  Ubuntu 14.04:
