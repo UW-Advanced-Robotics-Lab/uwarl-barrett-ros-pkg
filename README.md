@@ -76,6 +76,7 @@ Clone the git repository an run the build script:
 ```sh
 cd ~/catkin_ws/src
 git clone https://git.barrett.com/software/barrett-ros-pkg.git
+cd barrett-ros-pkg
 ./build.sh
 ```
 
@@ -110,15 +111,12 @@ gedit ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/perception_palm.lau
     ```
     ls /dev/video*
     ```
-    to see if you have extra video devices. To determine which devices are correct, you can use a program such as `cheese`:
+    to see if you have extra video devices. To determine which devices are correct, you can use a program such as `guvcview`:
     ```
-    sudo apt-get install cheese
-    cheese
+     sudo apt install guvcview
+    guvcview -d /dev/video0
     ```
-    Under Edit > Preferences > Device, you can test each device to determine which is which. If you need to change the default device(s), edit the lines in the launch file that look like this:
-    ```
-    <param name="device" type="string" value="/dev/video0" />
-    ```
+Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera.
     
     3. Save and exit the editor.
 
