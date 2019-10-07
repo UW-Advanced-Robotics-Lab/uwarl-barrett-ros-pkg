@@ -116,7 +116,10 @@ gedit ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/perception_palm.lau
      sudo apt install guvcview
     guvcview -d /dev/video0
     ```
-Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera.
+Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera. If you need to change the default device(s), edit the lines in the launch file that look like this:
+    ```
+    <param name="device" type="string" value="/dev/video0" />
+    ```
     
     3. Save and exit the editor.
 
