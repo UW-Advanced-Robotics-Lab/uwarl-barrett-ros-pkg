@@ -328,10 +328,27 @@ template<size_t DOF>
 	    
     }
 
-    if (pm.foundHand()) //Does the following only if a BarrettHand is present
+    if (pm.foundHand()) // Does the following only if a BarrettHand is present
     {
-      std::cout << "Barrett Hand" << std::endl;
       hand = pm.getHand();
+      if (hand->hasFingertipTorqueSensors())
+      {
+        fingerTs_pub = nh_.advertise<wam_msgs::FtTorques>(
+            "finger_tip_states", 1); // finger tip torques
+        if (hand->hasTactSensors())
+        {
+          tps_pub = nh_.advertise<wam_msgs::tactilePressureArray>(
+              "tactile_states", 1); // tactile  sensors
+          ROS_INFO("Barrett Hand with Fingertip Torque and Tactile Sensors");
+        } else
+        {
+          ROS_INFO("Barrett Hand with Fingertip Sensors");
+        }
+      }
+      else
+      {
+        ROS_INFO("Barrett Hand with no sensors");
+      }
 
       // Adjust the torque limits to allow for BarrettHand movements at extents
       pm.getSafetyModule()->setTorqueLimit(3.0);
