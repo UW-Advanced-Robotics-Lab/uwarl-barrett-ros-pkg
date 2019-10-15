@@ -77,6 +77,7 @@ Clone the git repository an run the build script:
 cd ~/catkin_ws/src
 git clone https://git.barrett.com/software/barrett-ros-pkg.git
 cd barrett-ros-pkg
+sudo -s
 ./build.sh
 ```
 
