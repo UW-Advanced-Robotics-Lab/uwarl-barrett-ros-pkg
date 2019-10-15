@@ -365,8 +365,6 @@ template<size_t DOF>
 
       //Publishing the following topics only if there is a BarrettHand present
       bhand_joint_state_pub = nh_.advertise < sensor_msgs::JointState > ("joint_states", 1); // bhand/joint_states
-      tps_pub = nh_.advertise < wam_msgs::tactilePressureArray > ("tactile_states", 1); // tactile  sensors
-      fingerTs_pub = nh_.advertise < wam_msgs::FtTorques > ("finger_tip_states", 1); // finger tip torques
       //Advertise the following services only if there is a BarrettHand present
       hand_open_grsp_srv = nh_.advertiseService("open_grasp", &WamNode<DOF>::handOpenGrasp, this); // bhand/open_grasp
       hand_close_grsp_srv = nh_.advertiseService("close_grasp", &WamNode::handCloseGrasp, this); // bhand/close_grasp
@@ -837,8 +835,14 @@ template<size_t DOF>
         bhand_joint_state.position[j + 4] = ho[j];
       bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
       bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
-      tps_pub.publish(tactileStates);
-      fingerTs_pub.publish(ftTorque_state);
+      if (hand->hasTactSensors())
+      {
+        tps_pub.publish(tactileStates);
+      }
+      if (hand->hasFingertipTorqueSensors())
+      {
+        fingerTs_pub.publish(ftTorque_state);
+      }
       btsleep(1.0 / BHAND_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
     }
   }
