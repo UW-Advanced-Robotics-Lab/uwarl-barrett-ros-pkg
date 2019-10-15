@@ -296,17 +296,17 @@ void BarrettHandNode::publishHand() {
           value -= chunk;
           switch (chunk)
           {
-          default:
-            c = c + 4;
-            break;
-          case 2:
-            c = c + 3;
+          case 0:
+            c = c + 1;
             break;
           case 1:
             c = c + 2;
             break;
-          case 0:
-            c = c + 1;
+          case 3:
+            c = c + 2;
+            break;
+          default:
+            c = c + 4;
             break;
           }
           switch (chunk - 4)

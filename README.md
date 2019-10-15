@@ -268,7 +268,7 @@ This can be solved by unplugging and plugging back the USB to the port.
 
 ## Running `barrett_hand_node`
 
-Launch the ```barrett_hand_node.launch``` file, with the **BarrettHand connected**:
+Launch the ```barrett_hand_node.launch``` file, with the **BarrettHand connected via the CAN bus**:
 ```sh
 roslaunch barrett_hand_node barrett_hand_node.launch
 ```
