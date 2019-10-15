@@ -31,7 +31,7 @@ This is Barrett Technology's ROS repository that wraps Libbarrett's functionalit
 ## Pre-Requisites
 #### On  Ubuntu 14.04:
 
-1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/blob/release/release-1.3.0/README.txt)
+1.  An installed version of [Libbarrett 1.2.5](https://git.barrett.com/software/libbarrett/tree/dev-1.2.5)
 
 2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu)
 
