@@ -10,7 +10,6 @@
 	- [Calibration](#calibration)
 	- [Running the demo](#running-the-demo)
 	- [Accessing the sensors](#accessing-the-sensors)
-	 - [Viewing with rviz](#viewing-with-rviz)
 	 - [LED](#led)
 	 - [Laser](#laser)
 	 - [IR Range finder](#ir-range-finder)
