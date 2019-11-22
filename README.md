@@ -170,16 +170,6 @@ If the camera node fails to start in step 2, make sure the configuration you cho
 
 While the demo is running you can access the sensors from a separate terminal.
 
-#### Viewing with rviz
-
-ROS has a visualization tool called `rviz` that allows you to view sensor data and video. It can be run for mono or stereo camera configurations by
-```
-rviz -d ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/palm_mono.rviz
-rviz -d ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/palm_stereo.rviz
-```
-
-*Note: If you encounter a segmentation fault when launching rviz, make sure you're using the correct configuration file, then wait a moment and try again.*
-
 #### LED
 
 The LED can be turned off and on by calling the service barrett/palm/set_led_on.<br />
