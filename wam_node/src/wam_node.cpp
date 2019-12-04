@@ -961,11 +961,9 @@ template<size_t DOF>
     ros::Rate pub_rate(PUBLISH_FREQ);
     if (pm.foundHand() || pm.foundForceTorqueSensor()) {
       boost::thread handPubThread(&WamNode<DOF>::publishHand, &wam_node);
-      handPubThread.detach();
     }
 
     boost::thread pubthread(&WamNode<DOF>::publishWam, &wam_node);
-    pubthread.detach();
     ros::AsyncSpinner spinner(1); //spin with 1 thread
     spinner.start();
      while (ros::ok() && pm.getSafetyModule()->getMode() == SafetyModule::ACTIVE)
