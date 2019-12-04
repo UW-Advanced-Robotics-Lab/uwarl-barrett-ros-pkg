@@ -46,11 +46,11 @@ void Teach::wamJointPositionCb(
     for (int i = 0; i < msg->position.size(); i++) {
       rt_joint_position_cmd_.rate_limits.at(i) = kRateLimits;
     }
-    wam_bag_.write("wam/jnt_pos_cmd", ros::Time::now(), rt_joint_position_cmd_);
+    wam_bag_.write("wam/jnt_pos_cmd", current_joint_position_.header.stamp, rt_joint_position_cmd_);
   } else if (joint_velocity_teach_) {
     std::vector<float> velocities(msg->velocity.begin(), msg->velocity.end());
     rt_joint_velocity_cmd_.velocities = velocities;
-    wam_bag_.write("wam/jnt_vel_cmd", ros::Time::now(), rt_joint_velocity_cmd_);
+    wam_bag_.write("wam/jnt_vel_cmd",current_joint_position_.header.stamp, rt_joint_velocity_cmd_);
   }
 }
 
@@ -59,7 +59,7 @@ void Teach::startTeaching() {
   wam_bag_.open(bag_name_, rosbag::bagmode::Write);
   teaching_ = true;
   /*Write current_joint_position_ to a random topic. Will be used by the play program to move the WAM to the start position */
-  wam_bag_.write("startJP", ros::Time::now(), current_joint_position_); 
+  wam_bag_.write("startJP", current_joint_position_.header.stamp, current_joint_position_); 
   switch (option_) {
     case 0:
       joint_position_teach_ = true;

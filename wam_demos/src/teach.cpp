@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
       ros_bag_name,
       n.serviceClient<wam_srvs::Hold>("wam/hold_joint_pos"), option);
   ros::Subscriber wam_jp_sub =
-      n.subscribe("wam/joint_states", 100, &Teach::wamJointPositionCb, &teach);
+      n.subscribe("wam/joint_states", 1000, &Teach::wamJointPositionCb, &teach);
   std::string input;
   ROS_INFO("Press any key to start Teaching");
   getline(std::cin, input);
