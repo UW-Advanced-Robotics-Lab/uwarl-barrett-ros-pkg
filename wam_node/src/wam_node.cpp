@@ -70,7 +70,7 @@
 #include <barrett/detail/stl_utils.h>
 
 static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
-static const int BHAND_PUBLISH_FREQ = 250; // Publishing Frequency for the BarretHand
+static const int BHAND_PUBLISH_FREQ = 10; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
 using namespace barrett;
