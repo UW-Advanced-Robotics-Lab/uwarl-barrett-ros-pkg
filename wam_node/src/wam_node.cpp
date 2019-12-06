@@ -353,7 +353,7 @@ template<size_t DOF>
 
       // Adjust the torque limits to allow for BarrettHand movements at extents
       pm.getSafetyModule()->setTorqueLimit(3.0);
-
+      pm.getSafetyModule()->setVelocityLimit(2.0);
       // Move j3 in order to give room for hand initialization
       jp_type jp_init = wam.getJointPositions();
       jp_init[3] -= 0.35;
