@@ -10,7 +10,6 @@
 	- [Calibration](#calibration)
 	- [Running the demo](#running-the-demo)
 	- [Accessing the sensors](#accessing-the-sensors)
-	 - [Viewing with rviz](#viewing-with-rviz)
 	 - [LED](#led)
 	 - [Laser](#laser)
 	 - [IR Range finder](#ir-range-finder)
@@ -97,34 +96,9 @@ roslaunch wam_node wam_node.launch
 ### Set up cameras:
 1. **Connect the Perception Palm to the PC** before completing the following steps.
 
-2. Edit the launch file to confirm camera setup parameters.
-```
-gedit ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/perception_palm.launch
-```
-    1. By default, only one camera is used. To use both cameras, uncomment the stereo camera node and comment the monocular camera node to use both the cameras. Example:
-    ```
-    <!--
-    commented lines
-    -->
-    ```
+2. Save and exit the editor.
 
-    2. Ensure that the launch file targets the correct devices. By default, the two cameras are `/dev/video0` and `/dev/video1`. However, if you have other cameras on your system, this may be different. List the video devices with
-    ```
-    ls /dev/video*
-    ```
-    to see if you have extra video devices. To determine which devices are correct, you can use a program such as `guvcview`:
-    ```
-     sudo apt install guvcview
-    guvcview -d /dev/video0
-    ```
-Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera. If you need to change the default device(s), edit the lines in the launch file that look like this:
-    ```
-    <param name="device" type="string" value="/dev/video0" />
-    ```
-    
-    3. Save and exit the editor.
-
-4. Load the correct camera module. For one camera
+3. Load the correct camera module. For one camera
 ```
 sudo rmmod uvcvideo
 sudo modprobe uvcvideo
@@ -171,10 +145,19 @@ sudo modprobe uvcvideo quirks=128
 ```
 
 2. Become the root user to access the drivers and run the demo.
+3. 
+**For one camera:**
 ```
 sudo -s
 source ~/catkin_ws/devel/setup.bash
 roslaunch perception_palm perception_palm.launch
+```
+
+    **For two cameras:**
+```
+sudo -s
+source ~/catkin_ws/devel/setup.bash
+roslaunch perception_palm perception_palm.launch mono_camera:=false
 ```
 
 3. To quit, press Ctrl-C. Then type `exit` to return to a regular terminal.
@@ -186,16 +169,6 @@ If the camera node fails to start in step 2, make sure the configuration you cho
 ### Accessing the sensors
 
 While the demo is running you can access the sensors from a separate terminal.
-
-#### Viewing with rviz
-
-ROS has a visualization tool called `rviz` that allows you to view sensor data and video. It can be run for mono or stereo camera configurations by
-```
-rviz -d ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/palm_mono.rviz
-rviz -d ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/palm_stereo.rviz
-```
-
-*Note: If you encounter a segmentation fault when launching rviz, make sure you're using the correct configuration file, then wait a moment and try again.*
 
 #### LED
 

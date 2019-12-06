@@ -163,6 +163,7 @@ template<size_t DOF>
     bool cart_vel_status, ortn_vel_status, jnt_vel_status;
     bool jnt_pos_status, cart_pos_status, ortn_pos_status, new_rt_cmd;
     double cart_vel_mag, ortn_vel_mag;
+    bool is_hand_moving;
     systems::Wam<DOF>& wam;
     Hand* hand;
     ForceTorqueSensor* fts;
@@ -305,7 +306,7 @@ template<size_t DOF>
     ros::NodeHandle nh_("bhand"); // BarrettHand specific nodehandle
     ros::NodeHandle fts_("fts"); // Force/Torque sensor specific nodehandle
     
-
+    is_hand_moving = false;
     //Setting up real-time command timeouts and initial values
     cart_vel_status = false; //Bool for determining cartesian velocity real-time state
     ortn_vel_status = false; //Bool for determining orientation velocity real-time state
@@ -441,8 +442,10 @@ template<size_t DOF>
 
     if (hand != NULL)
     {
+      is_hand_moving = true;
       hand->open(Hand::GRASP, true);
       hand->close(Hand::SPREAD, true);
+      is_hand_moving = false;
     }
     wam.moveHome();
     return true;
@@ -853,80 +856,84 @@ template<size_t DOF>
 template<size_t DOF>
   void WamNode<DOF>::publishHand() //systems::PeriodicDataLogger<debug_tuple>& logger
   {
+    ros::Rate pub_rate(BHAND_PUBLISH_FREQ);
     while (ros::ok())
     {
-      hand->update(); // Update the hand sensors
-      std::vector<TactilePuck*> tps = hand->getTactilePucks();
-      std::vector<int> fingerTip = hand->getFingertipTorque();
-      Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
-      Hand::jp_type ho = hand->getOuterLinkPosition();
-      for (unsigned i = 0; i < tps.size(); i++)
+      if (!is_hand_moving)
       {
-        TactilePuck::v_type pressures(tps[i]->getFullData());
-        for (int j = 0; j < pressures.size(); j++) {
-          int value = (int)(pressures[j] * 256.0) / 102;  // integer division
-          tactileState.pressure[j] = pressures[j];
-          int c = 0;
-          int chunk;
-          for (int z = 4; z >= 0; --z) {
-            chunk = (value <= 7) ? value : 7;
-            value -= chunk;
-            switch (chunk)
-            {
-            case 0:
-              c = c + 1;
-              break;
-            case 1:
-              c = c + 2;
-              break;
-            case 2:
-              c = c + 3;
-              break;
-            default:
-              c = c + 4;
-              break;
+        hand->update(); // Update the hand sensors
+        std::vector<TactilePuck*> tps = hand->getTactilePucks();
+        std::vector<int> fingerTip = hand->getFingertipTorque();
+        Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
+        Hand::jp_type ho = hand->getOuterLinkPosition();
+        for (unsigned i = 0; i < tps.size(); i++)
+        {
+          TactilePuck::v_type pressures(tps[i]->getFullData());
+          for (int j = 0; j < pressures.size(); j++) {
+            int value = (int)(pressures[j] * 256.0) / 102;  // integer division
+            tactileState.pressure[j] = pressures[j];
+            int c = 0;
+            int chunk;
+            for (int z = 4; z >= 0; --z) {
+              chunk = (value <= 7) ? value : 7;
+              value -= chunk;
+              switch (chunk)
+              {
+              case 0:
+                c = c + 1;
+                break;
+              case 1:
+                c = c + 2;
+                break;
+              case 2:
+                c = c + 3;
+                break;
+              default:
+                c = c + 4;
+                break;
+              }
+              switch (chunk - 4) {
+              case 3:
+                c = c + 4;
+                break;
+              case 2:
+                c = c+ 3;
+                break;
+              case 1:
+                c = c + 2;
+                break;
+              case 0:
+                c = c + 1;
+                break;
+              default:
+                c = c + 0;
+                break;
+              }
             }
-            switch (chunk - 4) {
-            case 3:
-              c = c + 4;
-              break;
-            case 2:
-              c = c+ 3;
-              break;
-            case 1:
-              c = c + 2;
-              break;
-            case 0:
-              c = c + 1;
-              break;
-            default:
-              c = c + 0;
-              break;
-            }
+            tactileState.normalizedPressure[j] = c - 5;
           }
-          tactileState.normalizedPressure[j] = c - 5;
+          tactileStates.tactilePressures[i] = tactileState;
         }
-        tactileStates.tactilePressures[i] = tactileState;
+        for (unsigned i = 0; i < fingerTip.size(); i++)
+        {
+          ftTorque_state.torque[i] = fingerTip[i];
+        }
+        for (size_t i = 0; i < 4; i++) // Save finger positions
+          bhand_joint_state.position[i] = hi[i];
+        for (size_t j = 0; j < 3; j++)
+          bhand_joint_state.position[j + 4] = ho[j];
+        bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
+        bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
+        if (hand->hasTactSensors())
+        {
+          tps_pub.publish(tactileStates);
+        }
+        if (hand->hasFingertipTorqueSensors())
+        {
+          fingerTs_pub.publish(ftTorque_state);
+        }
       }
-      for (unsigned i = 0; i < fingerTip.size(); i++)
-      {
-        ftTorque_state.torque[i] = fingerTip[i];
-      }
-      for (size_t i = 0; i < 4; i++) // Save finger positions
-        bhand_joint_state.position[i] = hi[i];
-      for (size_t j = 0; j < 3; j++)
-        bhand_joint_state.position[j + 4] = ho[j];
-      bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
-      bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
-      if (hand->hasTactSensors())
-      {
-        tps_pub.publish(tactileStates);
-      }
-      if (hand->hasFingertipTorqueSensors())
-      {
-        fingerTs_pub.publish(ftTorque_state);
-      }
-      btsleep(1.0 / BHAND_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
+      pub_rate.sleep();
     }
   }
   
