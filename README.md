@@ -5,6 +5,7 @@
 - [ Pre-Requisites](#pre-requisites)
 - [Compiling the package](#compiling-the-package)
 - [Running `wam_node`](#running-wam_node)
+- [Running `wam_demos`](#running-wam_demos)
 - [Running `perception_palm`](#running-perception_palm)
 	- [Set up cameras](#set-up-cameras)
 	- [Calibration](#calibration)
@@ -78,11 +79,13 @@ git clone https://git.barrett.com/software/barrett-ros-pkg.git
 cd barrett-ros-pkg
 sudo -s
 ./build.sh
+exit
 ```
 
 Source the package before running, or add it to ```bashrc```:
 ```sh
 echo 'source ~/catkin_ws/devel/setup.bash' >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ## Running `wam_node`
@@ -90,13 +93,45 @@ Launch the ```wam_node.launch``` file, **with the WAM Arm connected**:
 ```sh
 roslaunch wam_node wam_node.launch
 ```
+## Running `wam_demos`
+
+**To Teach:**
+```
+rosrun wam_demos teach -t <record_type> -n <bag_name>
+```
+The -t <record_type> field allows you to choose how to record the trajectories
+Possible values are:
+- ```-t jp```: Record using joint positions
+- ```-t jv```: Record using joint positions
+
+**To Play:**
+```
+rosrun wam_demos play <bag_name>
+```
 
 ## Running `perception_palm`
 
 ### Set up cameras:
 1. **Connect the Perception Palm to the PC** before completing the following steps.
 
-2. Save and exit the editor.
+2. Edit the launch file to confirm camera setup parameters.
+```
+gedit ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/perception_palm.launch
+```
+Ensure that the launch file targets the correct devices. By default, the two cameras are `/dev/video0` and `/dev/video1`. However, if you have other cameras on your system, this may be different. List the video devices with
+    ```
+    ls /dev/video*
+    ```
+    to see if you have extra video devices. To determine which devices are correct, you can use a program such as `guvcview`:
+    ```
+     sudo apt install guvcview
+    guvcview -d /dev/video0
+    ```
+Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera. If you need to change the default device(s), edit the lines in the launch file that look like this:
+    ```
+    <param name="device" type="string" value="/dev/video0" />
+    ```
+    
 
 3. Load the correct camera module. For one camera
 ```
@@ -114,7 +149,6 @@ sudo modprobe uvcvideo quirks=128
 Two cameras can be used simultaneously at a maximum resolution of 320 x 240 and a single camera can be used at a maximum resolution of 1600 x 1200. For information on maximum camera resolutions, refer to the spec sheet.
 
 The camera with the red filter is physically installed with 180 degrees shift. So, in this configuration the camera with red filter is rotated by 180 degrees. Make sure that the appropriate camera (left/right) is shifted while configuring based on the corresponding device ennumerations (/dev/video0 or /dev/video1). The necessary changes can be made in the launch/perception_palm.launch file.
-
 ### Calibration
 
 **IR Range finder**
