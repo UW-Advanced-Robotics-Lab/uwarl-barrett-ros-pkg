@@ -114,7 +114,7 @@ double perception_palm::ir_range(){
  */
 int perception_palm::led_on(){
 
-	chipDef.GP[5].GPIOOutput = 0;
+	chipDef.GP[5].GPIOOutput = 1;
 	int err = SetChipSettings(handle, chipDef);
 	return err;
 }
@@ -123,7 +123,7 @@ int perception_palm::led_on(){
  * @returns error code
  */
 int perception_palm::led_off(){
-	chipDef.GP[5].GPIOOutput = 1;
+	chipDef.GP[5].GPIOOutput = 0;
 	int err = SetChipSettings(handle, chipDef);
 	return err;
 }
