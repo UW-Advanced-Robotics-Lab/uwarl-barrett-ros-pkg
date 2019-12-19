@@ -70,6 +70,7 @@
 #include <barrett/detail/stl_utils.h>
 
 static const int PUBLISH_FREQ = 500; // Default Control Loop / Publishing Frequency
+//Bhand publishing frequencies have to be low to prevent system from switching out of real-time
 static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
@@ -353,7 +354,6 @@ template<size_t DOF>
 
       // Adjust the torque limits to allow for BarrettHand movements at extents
       pm.getSafetyModule()->setTorqueLimit(3.0);
-      pm.getSafetyModule()->setVelocityLimit(2.0);
       // Move j3 in order to give room for hand initialization
       jp_type jp_init = wam.getJointPositions();
       jp_init[3] -= 0.35;
