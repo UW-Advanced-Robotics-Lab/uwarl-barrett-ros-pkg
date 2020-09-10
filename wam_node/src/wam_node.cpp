@@ -69,7 +69,7 @@
 #include <barrett/systems/wam.h>
 #include <barrett/detail/stl_utils.h>
 
-static const int PUBLISH_FREQ = 500; // Default Control Loop / Publishing Frequency
+static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
 //Bhand publishing frequencies have to be low to prevent system from switching out of real-time
 static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
