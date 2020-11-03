@@ -70,12 +70,8 @@
 #include <barrett/detail/stl_utils.h>
 
 static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
-<<<<<<< Updated upstream
-//Bhand publishing frequencies have to be low to prevent system from switching out of real-time
-=======
 static const int FT_PUBLISH_FREQ = 250; // Publishing Frequency for the ForceTorque Sensor
 static const int SAFETY_MODE_FREQ = 10; // Update rate for Safety Mode
->>>>>>> Stashed changes
 static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
