@@ -70,7 +70,12 @@
 #include <barrett/detail/stl_utils.h>
 
 static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
+<<<<<<< Updated upstream
 //Bhand publishing frequencies have to be low to prevent system from switching out of real-time
+=======
+static const int FT_PUBLISH_FREQ = 250; // Publishing Frequency for the ForceTorque Sensor
+static const int SAFETY_MODE_FREQ = 10; // Update rate for Safety Mode
+>>>>>>> Stashed changes
 static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
 
@@ -955,9 +960,10 @@ template<size_t DOF>
       fts_state.torque.y = ct[1];
       fts_state.torque.z = ct[2];
       fts_pub.publish(fts_state);
+
+      btsleep(1.0 / FT_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
     }
   }  
-
 
 //Function to update the real-time control loops
 template<size_t DOF>
@@ -1010,6 +1016,10 @@ template<size_t DOF>
     WamNode<DOF> wam_node(wam);
     wam_node.init(pm);
     ros::Rate pub_rate(PUBLISH_FREQ);
+    int safetyLoopCycles = PUBLISH_FREQ / SAFETY_MODE_FREQ;
+    int safetyCtr = 0;
+
+    boost::thread safetyModeThread(&WamNode<DOF>::getSafetyLoop, &wam_node);
 
     if (pm.getForceTorqueSensor())
       boost::thread ftsPubThread(&WamNode<DOF>::publishFTS, &wam_node);
@@ -1020,10 +1030,16 @@ template<size_t DOF>
     boost::thread pubthread(&WamNode<DOF>::publishWam, &wam_node);
     ros::AsyncSpinner spinner(2); //spin with 4 threads
     spinner.start();
-     while (ros::ok())
+    while (ros::ok())
     {
       wam_node.updateRT(pm);
       pub_rate.sleep();
+      if(++safetyCtr > safetyLoopCycles){
+        if(pm.getSafetyModule()->getMode() != SafetyModule::ACTIVE){
+          break;
+        }
+        safetyCtr = 0;
+      }
     }
     ros::waitForShutdown();
     spinner.stop();
