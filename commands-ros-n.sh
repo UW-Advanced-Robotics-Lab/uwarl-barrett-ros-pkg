@@ -14,12 +14,7 @@ do
   - 3.0
   - 0.0
   - 0.0
-  - 0.0"
-  rosservice call /bhand/finger_pos "radians:
-  - 0.0
-  - 0.0
-  - 0.0"
-  
+  - 0.0"  
   sleep 1
 
   rosservice call /wam/joint_move "joints:
@@ -30,6 +25,11 @@ do
   - -0.59
   - 0.03
   - 0.21"
+
+  rosservice call /bhand/finger_pos "radians:
+  - 0.0
+  - 0.0
+  - 0.0"
   rosservice call /bhand/finger_pos "radians:
   - 2.0
   - 2.0

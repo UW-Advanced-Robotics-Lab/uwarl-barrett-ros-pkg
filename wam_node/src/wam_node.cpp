@@ -69,8 +69,8 @@
 #include <barrett/systems/wam.h>
 #include <barrett/detail/stl_utils.h>
 
-static const int WAM_PUBLISH_FREQ = 500; // Default Control Loop / Publishing Frequency
-static const int FT_PUBLISH_FREQ = 500;
+static const int WAM_PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
+static const int FT_PUBLISH_FREQ = 250;
 static const int BH_PUBLISH_FREQ = 40;
 static const int SAFETY_MODE_FREQ = 10;
 static const double SPEED = 0.03; // Default Cartesian Velocity
