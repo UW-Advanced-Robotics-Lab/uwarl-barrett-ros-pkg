@@ -284,7 +284,7 @@ void BarrettHandNode::publishHand() {
     std::vector<TactilePuck *> tps = hand->getTactilePucks();
     for (unsigned i = 0; i < tps.size(); i++)
     {
-      TactilePuck::v_type pressures(tps[i]->getFullData());
+      TactilePuck::v_type pressures(tps[i]->getTactileData());
       for (int j = 0; j < pressures.size(); j++)
       {
         int value = (int)(pressures[j] * 256.0) / 102; // integer division
