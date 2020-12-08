@@ -764,7 +764,7 @@ template<size_t DOF>
     wam_joint_state.header.stamp = ros::Time::now();
     wam_joint_state_pub.publish(wam_joint_state);
 
-    move_is_done.header.stamp = ros::Time::now();
+    //move_is_done.header.stamp = ros::Time::now();
     wam_move_state_pub.publish(move_is_done);
 
     //publishing geometry_msgs/PoseStamed to wam/pose
