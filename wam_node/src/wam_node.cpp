@@ -57,6 +57,7 @@
 #include "wam_srvs/BHandGraspVel.h"
 #include "wam_srvs/BHandSpreadVel.h"
 #include "std_srvs/Empty.h"
+#include "std_msgs/Bool.h"
 #include "sensor_msgs/JointState.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Wrench.h"
@@ -216,9 +217,16 @@ template<size_t DOF>
     wam_msgs::tactilePressure tactileState;
     geometry_msgs::PoseStamped wam_pose;
     geometry_msgs::Wrench fts_state;
+    std_msgs::Bool move_is_done;
 
     //Publishers
-    ros::Publisher wam_joint_state_pub, bhand_joint_state_pub, wam_pose_pub, fts_pub, tps_pub, fingerTs_pub;
+    ros::Publisher wam_joint_state_pub;
+    ros::Publisher wam_move_state_pub;
+    ros::Publisher bhand_joint_state_pub;
+    ros::Publisher wam_pose_pub;
+    ros::Publisher fts_pub;
+    ros::Publisher tps_pub;
+    ros::Publisher fingerTs_pub;
 
     //Services
     ros::ServiceServer gravity_srv, go_home_srv, hold_jpos_srv, hold_cpos_srv;
@@ -333,25 +341,20 @@ template<size_t DOF>
     if (pm.foundHand()) // Does the following only if a BarrettHand is present
     {
       hand = pm.getHand();
+      ROS_INFO("Barrett Hand");
       if (hand->hasFingertipTorqueSensors())
       {
+        ROS_INFO("...with Fingertip Sensors");
         fingerTs_pub = nh_.advertise<wam_msgs::FtTorques>(
-            "finger_tip_states", 1); // finger tip torques
-        if (hand->hasTactSensors())
-        {
-          tps_pub = nh_.advertise<wam_msgs::tactilePressureArray>(
-              "tactile_states", 1); // tactile  sensors
-          ROS_INFO("Barrett Hand with Fingertip Torque and Tactile Sensors");
-        } else
-        {
-          ROS_INFO("Barrett Hand with Fingertip Sensors");
-        }
+            "finger_tip_states", 1); // Publish the finger tip torques
       }
-      else
+      if (hand->hasTactSensors())
       {
-        ROS_INFO("Barrett Hand with no sensors");
+        ROS_INFO("...with Tactile Sensors");
+        tps_pub = nh_.advertise<wam_msgs::tactilePressureArray>(
+            "tactile_states", 1); // Publish the tactile sensors
       }
-
+      
       // Adjust the torque limits to allow for BarrettHand movements at extents
       pm.getSafetyModule()->setTorqueLimit(3.0);
 
@@ -367,6 +370,7 @@ template<size_t DOF>
 
       //Publishing the following topics only if there is a BarrettHand present
       bhand_joint_state_pub = nh_.advertise < sensor_msgs::JointState > ("joint_states", 1); // bhand/joint_states
+
       //Advertise the following services only if there is a BarrettHand present
       hand_open_grsp_srv = nh_.advertiseService("open_grasp", &WamNode<DOF>::handOpenGrasp, this); // bhand/open_grasp
       hand_close_grsp_srv = nh_.advertiseService("close_grasp", &WamNode::handCloseGrasp, this); // bhand/close_grasp
@@ -382,10 +386,13 @@ template<size_t DOF>
       //Set up the BarrettHand joint state publisher
       const char* bhand_jnts[] = {"inner_f1", "inner_f2", "inner_f3", "spread", "outer_f1", "outer_f2", "outer_f3"};
       std::vector < std::string > bhand_joints(bhand_jnts, bhand_jnts + 7);
+
       tactileState.pressure.resize(24);
       tactileState.normalizedPressure.resize(24);
       tactileStates.tactilePressures.resize(4);
+
       ftTorque_state.torque.resize(4);
+
       bhand_joint_state.name.resize(7);
       bhand_joint_state.name = bhand_joints;
       bhand_joint_state.position.resize(7);
@@ -404,6 +411,7 @@ template<size_t DOF>
 
     //Publishing the following rostopics
     wam_joint_state_pub = n_.advertise < sensor_msgs::JointState > ("joint_states", 1); // wam/joint_states
+    wam_move_state_pub = n_.advertise < std_msgs::Bool > ("move_is_done", 1); // moving state
     wam_pose_pub = n_.advertise < geometry_msgs::PoseStamped > ("pose", 1); // wam/pose
 
     //Subscribing to the following rostopics
@@ -423,7 +431,6 @@ template<size_t DOF>
     pose_move_srv = n_.advertiseService("pose_move", &WamNode::poseMove, this); // wam/pose_move
     cart_move_srv = n_.advertiseService("cart_move", &WamNode::cartMove, this); // wam/cart_pos_move
     ortn_move_srv = n_.advertiseService("ortn_move", &WamNode::ortnMove, this); // wam/ortn_move
-
   }
 
 // gravity_comp service callback
@@ -745,6 +752,7 @@ template<size_t DOF>
     jv_type jv = wam.getJointVelocities();
     cp_type cp_pub = wam.getToolPosition();
     Eigen::Quaterniond to_pub = wam.getToolOrientation();
+    move_is_done.data = wam.moveIsDone();
 
     //publishing sensor_msgs/JointState to wam/joint_states
     for (size_t i = 0; i < DOF; i++)
@@ -755,6 +763,9 @@ template<size_t DOF>
     }
     wam_joint_state.header.stamp = ros::Time::now();
     wam_joint_state_pub.publish(wam_joint_state);
+
+    //move_is_done.header.stamp = ros::Time::now();
+    wam_move_state_pub.publish(move_is_done);
 
     //publishing geometry_msgs/PoseStamed to wam/pose
     wam_pose.header.stamp = ros::Time::now();
