@@ -77,12 +77,18 @@ Clone the git repository an run the build script:
 cd ~/catkin_ws/src
 git clone https://git.barrett.com/software/barrett-ros-pkg.git
 cd barrett-ros-pkg
+git checkout devel
 sudo -s
 ./build.sh
 exit
 ```
 
-Source the package before running, or add it to ```bashrc```:
+Source the package before running:
+```sh
+source ~/catkin_ws/devel/setup.bash
+```
+
+OR add it to ```bashrc```:
 ```sh
 echo 'source ~/catkin_ws/devel/setup.bash' >> ~/.bashrc
 source ~/.bashrc
@@ -93,7 +99,17 @@ Launch the ```wam_node.launch``` file, **with the WAM Arm connected**:
 ```sh
 roslaunch wam_node wam_node.launch
 ```
+
 ## Running `wam_demos`
+**To Cycle a 7DOF+BHand 10 times, without MoveIsDone:**
+```
+sh commands-ros-n.sh 10
+```
+
+**To Cycle a 7DOF 10 times, using MoveIsDone:**
+```
+sh cmds-7dof-cycle.sh 10
+```
 
 **To Teach:**
 ```
