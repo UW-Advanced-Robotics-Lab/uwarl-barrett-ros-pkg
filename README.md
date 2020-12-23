@@ -83,12 +83,12 @@ sudo -s
 exit
 ```
 
-Source the package before running:
+Source the package before running (does not persist after reboot):
 ```sh
 source ~/catkin_ws/devel/setup.bash
 ```
 
-OR add it to ```bashrc```:
+OR add it to ```bashrc``` (persists after reboot):
 ```sh
 echo 'source ~/catkin_ws/devel/setup.bash' >> ~/.bashrc
 source ~/.bashrc
