@@ -13,6 +13,13 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Barrett REQUIRED)
 include_directories(${BARRETT_INCLUDE_DIRS})
 include_directories(${catkin_INCLUDE_DIRS})
+
+## Boost
+set(boost_components system thread python)
+find_package(Boost REQUIRED ${boost_components})
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
 catkin_package(
   LIBRARIES
   CATKIN_DEPENDS
