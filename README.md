@@ -63,6 +63,17 @@ sudo apt-get install python-wstool
 sudo apt-get install ros-melodic-camera-umd
 ```
 
+#### On  Ubuntu 20.04:
+1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
+
+2. [ROS Noetic]([http://wiki.ros.org/noetic/Installation/Ubuntu](http://wiki.ros.org/noetic/Installation/Ubuntu)) 
+
+3. Install libudev and the camera driver.
+```
+sudo apt update
+sudo apt install libudev-dev ros-noetic-libuvc-camera
+```
+
 ## Compiling the package
 Create a new Catkin Workspace **if not already done**:
 
