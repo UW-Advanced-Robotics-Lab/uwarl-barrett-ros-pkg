@@ -63,6 +63,17 @@ sudo apt-get install python-wstool
 sudo apt-get install ros-melodic-camera-umd
 ```
 
+#### On  Ubuntu 20.04:
+1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
+
+2. [ROS Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu) 
+
+3. Install libudev and the camera driver.
+```
+sudo apt update
+sudo apt install libudev-dev ros-noetic-usb-cam
+```
+
 ## Compiling the package
 Create a new Catkin Workspace **if not already done**:
 
@@ -195,11 +206,10 @@ sudo modprobe uvcvideo quirks=128
 ```
 
 2. Become the root user to access the drivers and run the demo.
-3. 
 **For one camera:**
 ```
 sudo -s
-source ~/catkin_ws/devel/setup.bash
+source /home/robot/catkin_ws/devel/setup.bash
 roslaunch perception_palm perception_palm.launch
 ```
 
