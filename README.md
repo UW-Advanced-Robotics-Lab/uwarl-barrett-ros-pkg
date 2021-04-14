@@ -66,7 +66,7 @@ sudo apt-get install ros-melodic-camera-umd
 #### On  Ubuntu 20.04:
 1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 
-2. [ROS Noetic]([http://wiki.ros.org/noetic/Installation/Ubuntu](http://wiki.ros.org/noetic/Installation/Ubuntu)) 
+2. [ROS Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu) 
 
 3. Install libudev and the camera driver.
 ```
@@ -210,7 +210,7 @@ sudo modprobe uvcvideo quirks=128
 **For one camera:**
 ```
 sudo -s
-source ~/catkin_ws/devel/setup.bash
+source /home/robot/catkin_ws/devel/setup.bash
 roslaunch perception_palm perception_palm.launch
 ```
 
