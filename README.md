@@ -71,7 +71,7 @@ sudo apt-get install ros-melodic-camera-umd
 3. Install libudev and the camera driver.
 ```
 sudo apt update
-sudo apt install libudev-dev ros-noetic-libuvc-camera
+sudo apt install libudev-dev ros-noetic-usb-cam
 ```
 
 ## Compiling the package
