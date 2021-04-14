@@ -206,7 +206,6 @@ sudo modprobe uvcvideo quirks=128
 ```
 
 2. Become the root user to access the drivers and run the demo.
-3. 
 **For one camera:**
 ```
 sudo -s
