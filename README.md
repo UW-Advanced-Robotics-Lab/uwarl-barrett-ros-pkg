@@ -139,7 +139,7 @@ rosrun wam_demos play <bag_name>
 ## Running `perception_palm`
 
 ### Set up cameras:
-1. Configure the camera driver
+1. Install the camera utilities
 ```
 sudo apt install v4l-utils guvcview
 ```
@@ -148,13 +148,13 @@ sudo apt install v4l-utils guvcview
 3. Determine the device names for the Perception Palm cameras. 
 
 List the video devices with:
-    ```
-    v4l2-ctl --list-devices
-    ```
-    To determine which devices are correct, you can use a program such as `guvcview`:
-    ```
-    guvcview -d /dev/video0
-    ```
+```
+v4l2-ctl --list-devices
+```
+To determine which devices are correct, you can use a program such as `guvcview`:
+```
+guvcview -d /dev/video0
+```
 Note which device corresponds to which camera. Some of the /dev/video devices may actually correspond to a camera's metadata (like image format) instead of representing a video stream. For detailed information on /dev/video0 (for example), use:
 ```
 v4l2-ctl --device=/dev/video0 --all
