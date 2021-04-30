@@ -64,7 +64,7 @@ sudo apt-get install ros-melodic-camera-umd
 ```
 
 #### On  Ubuntu 20.04:
-1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
+1. An installed version of [Libbarrett 3.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 
 2. [ROS Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu) 
 
@@ -112,12 +112,8 @@ roslaunch wam_node wam_node.launch
 ```
 
 ## Running `wam_demos`
-**To Cycle a 7DOF+BHand 10 times, without MoveIsDone:**
-```
-sh commands-ros-n.sh 10
-```
 
-**To Cycle a 7DOF 10 times, using MoveIsDone:**
+**To Cycle a 7DOF WAM and BarrettHand 10 times from a shell script:**
 ```
 sh cmds-7dof-cycle.sh 10
 ```
