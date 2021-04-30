@@ -33,7 +33,7 @@ This is Barrett Technology's ROS repository that wraps Libbarrett's functionalit
 
 1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/tree/devel-14.04)
 
-2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu)
+2. [ROS Indigo](https://wiki.ros.org/indigo/Installation/Ubuntu)
 
 3. Install libudev and wstool.
 ```
@@ -49,7 +49,7 @@ sudo apt-get install ros-indigo-camera-umd
 #### On  Ubuntu 18.04:
 1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 
-2. [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
+2. [ROS Melodic](https://wiki.ros.org/melodic/Installation/Ubuntu)
 
 3. Install libudev and wstool.
 ```
