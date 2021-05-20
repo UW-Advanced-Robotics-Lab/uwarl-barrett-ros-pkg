@@ -66,17 +66,25 @@
 #include <barrett/units.h>
 #include <barrett/systems.h>
 #include <barrett/products/product_manager.h>
+
+#define BARRETT_SMF_CONFIGURE_PM
 #include <barrett/standard_main_function.h>
 #include <barrett/systems/wam.h>
 #include <barrett/detail/stl_utils.h>
 
-static const int WAM_PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
-static const int FT_PUBLISH_FREQ = 250;
-static const int BH_PUBLISH_FREQ = 40;
-static const int SAFETY_MODE_FREQ = 10;
-static const double SPEED = 0.03; // Default Cartesian Velocity
+static const int WAM_CONTROL_RATE = 500; // Set libbarrett's WAM control rate
+static const int WAM_PUBLISH_FREQ = 500; // ROS control loop rate, WAM publishing frequency
+static const int FT_PUBLISH_FREQ  = 500; // ForceTorque feedback rate
+static const int BH_PUBLISH_FREQ  =  40; // BHand control loop rate
+static const int SAFETY_MODE_FREQ =  10; // Safety state feedback rate
+static const double SPEED = 0.03; // Default Cartesian velocity
 
 using namespace barrett;
+
+bool configure_pm(int argc, char** argv, ::ProductManager& pm){
+  pm.getExecutionManager(1.0 / WAM_CONTROL_RATE);
+  return true;
+}
 
 //Creating a templated multiplier for our real-time computation
 template<typename T1, typename T2, typename OutputType>

@@ -33,7 +33,7 @@ This is Barrett Technology's ROS repository that wraps Libbarrett's functionalit
 
 1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/tree/devel-14.04)
 
-2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu)
+2. [ROS Indigo](https://wiki.ros.org/indigo/Installation/Ubuntu)
 
 3. Install libudev and wstool.
 ```
@@ -49,7 +49,7 @@ sudo apt-get install ros-indigo-camera-umd
 #### On  Ubuntu 18.04:
 1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 
-2. [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
+2. [ROS Melodic](https://wiki.ros.org/melodic/Installation/Ubuntu)
 
 3. Install libudev and wstool.
 ```
@@ -61,6 +61,17 @@ sudo apt-get install python-wstool
 4. Install the camera driver:
 ```
 sudo apt-get install ros-melodic-camera-umd
+```
+
+#### On  Ubuntu 20.04:
+1. An installed version of [Libbarrett 3.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
+
+2. [ROS Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu) 
+
+3. Install libudev and the camera driver.
+```
+sudo apt update
+sudo apt install libudev-dev ros-noetic-usb-cam
 ```
 
 ## Compiling the package
@@ -101,12 +112,8 @@ roslaunch wam_node wam_node.launch
 ```
 
 ## Running `wam_demos`
-**To Cycle a 7DOF+BHand 10 times, without MoveIsDone:**
-```
-sh commands-ros-n.sh 10
-```
 
-**To Cycle a 7DOF 10 times, using MoveIsDone:**
+**To Cycle a 7DOF WAM and BarrettHand 10 times from a shell script:**
 ```
 sh cmds-7dof-cycle.sh 10
 ```
@@ -128,43 +135,46 @@ rosrun wam_demos play <bag_name>
 ## Running `perception_palm`
 
 ### Set up cameras:
-1. **Connect the Perception Palm to the PC** before completing the following steps.
+1. Install the camera utilities
+```
+sudo apt install v4l-utils guvcview
+```
+2. Connect the Perception Palm to the PC using a USB cable
 
-2. Edit the launch file to confirm camera setup parameters.
+3. Determine the device names for the Perception Palm cameras. 
+
+List the video devices with:
+```
+v4l2-ctl --list-devices
+```
+To determine which devices are correct, you can use a program such as `guvcview`:
+```
+guvcview -d /dev/video0
+```
+Note which device corresponds to which camera. Some of the /dev/video devices may actually correspond to a camera's metadata (like image format) instead of representing a video stream. For detailed information on /dev/video0 (for example), use:
+```
+v4l2-ctl --device=/dev/video0 --all
+```
+If the "Device Caps" section advertises "Video Capture", then this device has a valid video stream.
+
+4. Edit the launch file to confirm camera setup parameters.
 ```
 gedit ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/perception_palm.launch
 ```
-Ensure that the launch file targets the correct devices. By default, the two cameras are `/dev/video0` and `/dev/video1`. However, if you have other cameras on your system, this may be different. List the video devices with
-    ```
-    ls /dev/video*
-    ```
-    to see if you have extra video devices. To determine which devices are correct, you can use a program such as `guvcview`:
-    ```
-     sudo apt install guvcview
-    guvcview -d /dev/video0
-    ```
-Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera. If you need to change the default device(s), edit the lines in the launch file that look like this:
-    ```
-    <param name="device" type="string" value="/dev/video0" />
-    ```
-    
-
-3. Load the correct camera module. For one camera
+Ensure that the launch file targets the correct devices. If you need to change the default devices, edit the lines in the launch file that look like this:
 ```
-sudo rmmod uvcvideo
-sudo modprobe uvcvideo
-```
-    or two cameras
-```
-sudo rmmod uvcvideo
-sudo modprobe uvcvideo quirks=128
+<param name="device" type="string" value="/dev/video0" />
 ```
 
 *Notes*
 
-Two cameras can be used simultaneously at a maximum resolution of 320 x 240 and a single camera can be used at a maximum resolution of 1600 x 1200. For information on maximum camera resolutions, refer to the spec sheet.
+A single camera can be used at a maximum resolution of 1600 x 1200. Two cameras are limited to a maximum resolution of 320 x 240 due to how much USB bandwidth is (incorrectly) requested/estimated for each video stream. For information on alternative camera resolutions, formats, and frame rates, use this command:
+```
+v4l2-ctl --list-formats-ext
+```
 
-The camera with the red filter is physically installed with 180 degrees shift. So, in this configuration the camera with red filter is rotated by 180 degrees. Make sure that the appropriate camera (left/right) is shifted while configuring based on the corresponding device ennumerations (/dev/video0 or /dev/video1). The necessary changes can be made in the launch/perception_palm.launch file.
+The camera with the red filter is physically rotated 180 degrees with respect to the other camera. You may want to flip the video stream from this camera.
+
 ### Calibration
 
 **IR Range finder**
@@ -183,7 +193,7 @@ Please refer to the ROS [Stereo](http://wiki.ros.org/camera_calibration/Tutorial
 
 ### Running the demo
 
-1. Configure the cameras (every time you plug in the Perception Palm or reboot the computer). For one camera
+1.  (every time you plug in the Perception Palm or reboot the computer). For one camera
 ```
 sudo rmmod uvcvideo
 sudo modprobe uvcvideo
@@ -195,15 +205,14 @@ sudo modprobe uvcvideo quirks=128
 ```
 
 2. Become the root user to access the drivers and run the demo.
-3. 
 **For one camera:**
 ```
 sudo -s
-source ~/catkin_ws/devel/setup.bash
+source /home/robot/catkin_ws/devel/setup.bash
 roslaunch perception_palm perception_palm.launch
 ```
 
-    **For two cameras:**
+**For two cameras:**
 ```
 sudo -s
 source ~/catkin_ws/devel/setup.bash
