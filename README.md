@@ -304,15 +304,23 @@ Launch the ```barrett_hand_node.launch``` file, with the **BarrettHand connected
 ```sh
 roslaunch barrett_hand_node barrett_hand_node.launch
 ```
-## Example of running the services (Tested on ROS Melodic and Indigo)
-**Move BHand Fingers:**
-```
-rosservice call /bhand/finger_pos "radians:
-- 0.0
-- 0.0
-- 0.0" 
+
+In a separate terminal:
+```sh
+rosservice call /bhand/close_grasp
+rosservice call /bhand/open_grasp
+rosservice call /bhand/grasp_pos 1.57
+rosservice call /bhand/finger_pos "[0.5, 1, 1.5]"
+rosservice call /bhand/initialize
+rosservice call /bhand/spread_pos 1.57
+rosservice call /bhand/open_spread
+
+rostopic echo /bhand/finger_tip_states
+rostopic echo /bhand/joint_states
+rostopic echo /bhand/tactile_states
 ```
 
+## Examples of running the WAM services (Tested on ROS Melodic and Indigo)
 **Move WAM Joints:**
 ```
 rosservice call /wam/joint_move "joints:
@@ -321,6 +329,7 @@ rosservice call /wam/joint_move "joints:
 - 0.0
 - 0.0"
 ```
+
 **Move WAM to Tool Pose:**
 ```
 rosservice call /wam/pose_move "pose:
@@ -334,10 +343,12 @@ rosservice call /wam/pose_move "pose:
     z: -0.2516
     w: -0.3498"
 ```
+
 **Move WAM Home:**
 ```
 rosservice call /wam/go_home
 ```
+
 **Hold Joint Positions:**
 ```
 rosservice call /wam/hold_joint_pos "hold: true"
