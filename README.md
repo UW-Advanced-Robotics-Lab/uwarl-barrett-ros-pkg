@@ -5,12 +5,12 @@
 - [ Pre-Requisites](#pre-requisites)
 - [Compiling the package](#compiling-the-package)
 - [Running `wam_node`](#running-wam_node)
+- [Running `wam_demos`](#running-wam_demos)
 - [Running `perception_palm`](#running-perception_palm)
 	- [Set up cameras](#set-up-cameras)
 	- [Calibration](#calibration)
 	- [Running the demo](#running-the-demo)
 	- [Accessing the sensors](#accessing-the-sensors)
-	 - [Viewing with rviz](#viewing-with-rviz)
 	 - [LED](#led)
 	 - [Laser](#laser)
 	 - [IR Range finder](#ir-range-finder)
@@ -31,9 +31,9 @@ This is Barrett Technology's ROS repository that wraps Libbarrett's functionalit
 ## Pre-Requisites
 #### On  Ubuntu 14.04:
 
-1.  An installed version of [Libbarrett 1.2.5](https://git.barrett.com/software/libbarrett/tree/dev-1.2.5)
+1.  An installed version of [Libbarrett 1.3.0](https://git.barrett.com/software/libbarrett/tree/devel-14.04)
 
-2. [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu)
+2. [ROS Indigo](https://wiki.ros.org/indigo/Installation/Ubuntu)
 
 3. Install libudev and wstool.
 ```
@@ -49,7 +49,7 @@ sudo apt-get install ros-indigo-camera-umd
 #### On  Ubuntu 18.04:
 1. An installed version of [Libbarrett 2.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
 
-2. [ROS Melodic]([http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu)) 
+2. [ROS Melodic](https://wiki.ros.org/melodic/Installation/Ubuntu)
 
 3. Install libudev and wstool.
 ```
@@ -61,6 +61,17 @@ sudo apt-get install python-wstool
 4. Install the camera driver:
 ```
 sudo apt-get install ros-melodic-camera-umd
+```
+
+#### On  Ubuntu 20.04:
+1. An installed version of [Libbarrett 3.0.0](https://git.barrett.com/software/libbarrett/blob/devel/README.md)
+
+2. [ROS Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu) 
+
+3. Install libudev and the camera driver.
+```
+sudo apt update
+sudo apt install libudev-dev ros-noetic-usb-cam
 ```
 
 ## Compiling the package
@@ -77,13 +88,21 @@ Clone the git repository an run the build script:
 cd ~/catkin_ws/src
 git clone https://git.barrett.com/software/barrett-ros-pkg.git
 cd barrett-ros-pkg
+git checkout devel
 sudo -s
 ./build.sh
+exit
 ```
 
-Source the package before running, or add it to ```bashrc```:
+Source the package before running (does not persist after reboot):
+```sh
+source ~/catkin_ws/devel/setup.bash
+```
+
+OR add it to ```bashrc``` (persists after reboot):
 ```sh
 echo 'source ~/catkin_ws/devel/setup.bash' >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ## Running `wam_node`
@@ -92,54 +111,69 @@ Launch the ```wam_node.launch``` file, **with the WAM Arm connected**:
 roslaunch wam_node wam_node.launch
 ```
 
+## Running `wam_demos`
+
+**To Cycle a 7DOF WAM and BarrettHand 10 times from a shell script:**
+```
+sh cmds-7dof-cycle.sh 10
+```
+
+**To Teach:**
+```
+rosrun wam_demos teach -t <record_type> -n <bag_name>
+```
+The -t <record_type> field allows you to choose how to record the trajectories
+Possible values are:
+- ```-t jp```: Record using joint positions
+- ```-t jv```: Record using joint positions
+
+**To Play:**
+```
+rosrun wam_demos play <bag_name>
+```
+
 ## Running `perception_palm`
 
 ### Set up cameras:
-1. **Connect the Perception Palm to the PC** before completing the following steps.
+1. Install the camera utilities
+```
+sudo apt install v4l-utils guvcview
+```
+2. Connect the Perception Palm to the PC using a USB cable
 
-2. Edit the launch file to confirm camera setup parameters.
+3. Determine the device names for the Perception Palm cameras. 
+
+List the video devices with:
+```
+v4l2-ctl --list-devices
+```
+To determine which devices are correct, you can use a program such as `guvcview`:
+```
+guvcview -d /dev/video0
+```
+Note which device corresponds to which camera. Some of the /dev/video devices may actually correspond to a camera's metadata (like image format) instead of representing a video stream. For detailed information on /dev/video0 (for example), use:
+```
+v4l2-ctl --device=/dev/video0 --all
+```
+If the "Device Caps" section advertises "Video Capture", then this device has a valid video stream.
+
+4. Edit the launch file to confirm camera setup parameters.
 ```
 gedit ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/perception_palm.launch
 ```
-    1. By default, only one camera is used. To use both cameras, uncomment the stereo camera node and comment the monocular camera node to use both the cameras. Example:
-    ```
-    <!--
-    commented lines
-    -->
-    ```
-
-    2. Ensure that the launch file targets the correct devices. By default, the two cameras are `/dev/video0` and `/dev/video1`. However, if you have other cameras on your system, this may be different. List the video devices with
-    ```
-    ls /dev/video*
-    ```
-    to see if you have extra video devices. To determine which devices are correct, you can use a program such as `guvcview`:
-    ```
-     sudo apt install guvcview
-    guvcview -d /dev/video0
-    ```
-Check if running the command above with `dev/video0` and/or `dev/video1` shows output from the camera. If you need to change the default device(s), edit the lines in the launch file that look like this:
-    ```
-    <param name="device" type="string" value="/dev/video0" />
-    ```
-    
-    3. Save and exit the editor.
-
-4. Load the correct camera module. For one camera
+Ensure that the launch file targets the correct devices. If you need to change the default devices, edit the lines in the launch file that look like this:
 ```
-sudo rmmod uvcvideo
-sudo modprobe uvcvideo
-```
-    or two cameras
-```
-sudo rmmod uvcvideo
-sudo modprobe uvcvideo quirks=128
+<param name="device" type="string" value="/dev/video0" />
 ```
 
 *Notes*
 
-Two cameras can be used simultaneously at a maximum resolution of 320 x 240 and a single camera can be used at a maximum resolution of 1600 x 1200. For information on maximum camera resolutions, refer to the spec sheet.
+A single camera can be used at a maximum resolution of 1600 x 1200. Two cameras are limited to a maximum resolution of 320 x 240 due to how much USB bandwidth is (incorrectly) requested/estimated for each video stream. For information on alternative camera resolutions, formats, and frame rates, use this command:
+```
+v4l2-ctl --list-formats-ext
+```
 
-The camera with the red filter is physically installed with 180 degrees shift. So, in this configuration the camera with red filter is rotated by 180 degrees. Make sure that the appropriate camera (left/right) is shifted while configuring based on the corresponding device ennumerations (/dev/video0 or /dev/video1). The necessary changes can be made in the launch/perception_palm.launch file.
+The camera with the red filter is physically rotated 180 degrees with respect to the other camera. You may want to flip the video stream from this camera.
 
 ### Calibration
 
@@ -159,7 +193,7 @@ Please refer to the ROS [Stereo](http://wiki.ros.org/camera_calibration/Tutorial
 
 ### Running the demo
 
-1. Configure the cameras (every time you plug in the Perception Palm or reboot the computer). For one camera
+1.  (every time you plug in the Perception Palm or reboot the computer). For one camera
 ```
 sudo rmmod uvcvideo
 sudo modprobe uvcvideo
@@ -171,10 +205,18 @@ sudo modprobe uvcvideo quirks=128
 ```
 
 2. Become the root user to access the drivers and run the demo.
+**For one camera:**
+```
+sudo -s
+source /home/robot/catkin_ws/devel/setup.bash
+roslaunch perception_palm perception_palm.launch
+```
+
+**For two cameras:**
 ```
 sudo -s
 source ~/catkin_ws/devel/setup.bash
-roslaunch perception_palm perception_palm.launch
+roslaunch perception_palm perception_palm.launch mono_camera:=false
 ```
 
 3. To quit, press Ctrl-C. Then type `exit` to return to a regular terminal.
@@ -186,16 +228,6 @@ If the camera node fails to start in step 2, make sure the configuration you cho
 ### Accessing the sensors
 
 While the demo is running you can access the sensors from a separate terminal.
-
-#### Viewing with rviz
-
-ROS has a visualization tool called `rviz` that allows you to view sensor data and video. It can be run for mono or stereo camera configurations by
-```
-rviz -d ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/palm_mono.rviz
-rviz -d ~/catkin_ws/src/barrett-ros-pkg/perception_palm/launch/palm_stereo.rviz
-```
-
-*Note: If you encounter a segmentation fault when launching rviz, make sure you're using the correct configuration file, then wait a moment and try again.*
 
 #### LED
 
@@ -272,15 +304,23 @@ Launch the ```barrett_hand_node.launch``` file, with the **BarrettHand connected
 ```sh
 roslaunch barrett_hand_node barrett_hand_node.launch
 ```
-## Example of running the services (Tested on ROS Melodic and Indigo)
-**Move BHand Fingers:**
-```
-rosservice call /bhand/finger_pos "radians:
-- 0.0
-- 0.0
-- 0.0" 
+
+In a separate terminal:
+```sh
+rosservice call /bhand/close_grasp
+rosservice call /bhand/open_grasp
+rosservice call /bhand/grasp_pos 1.57
+rosservice call /bhand/finger_pos "[0.5, 1, 1.5]"
+rosservice call /bhand/initialize
+rosservice call /bhand/spread_pos 1.57
+rosservice call /bhand/open_spread
+
+rostopic echo /bhand/finger_tip_states
+rostopic echo /bhand/joint_states
+rostopic echo /bhand/tactile_states
 ```
 
+## Examples of running the WAM services (Tested on ROS Melodic and Indigo)
 **Move WAM Joints:**
 ```
 rosservice call /wam/joint_move "joints:
@@ -289,6 +329,7 @@ rosservice call /wam/joint_move "joints:
 - 0.0
 - 0.0"
 ```
+
 **Move WAM to Tool Pose:**
 ```
 rosservice call /wam/pose_move "pose:
@@ -302,10 +343,12 @@ rosservice call /wam/pose_move "pose:
     z: -0.2516
     w: -0.3498"
 ```
+
 **Move WAM Home:**
 ```
 rosservice call /wam/go_home
 ```
+
 **Hold Joint Positions:**
 ```
 rosservice call /wam/hold_joint_pos "hold: true"

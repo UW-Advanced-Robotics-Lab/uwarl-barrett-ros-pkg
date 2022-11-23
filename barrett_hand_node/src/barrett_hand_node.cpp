@@ -82,7 +82,7 @@ class BarrettHandNode
     ros::ServiceServer hand_open_grsp_srv, hand_close_grsp_srv, hand_open_sprd_srv;
     ros::ServiceServer hand_close_sprd_srv, hand_fngr_pos_srv, hand_fngr_vel_srv;
     ros::ServiceServer hand_grsp_pos_srv, hand_grsp_vel_srv, hand_sprd_pos_srv;
-    ros::ServiceServer hand_sprd_vel_srv;
+    ros::ServiceServer hand_sprd_vel_srv, hand_initialize_srv;
 
   public:
     BarrettHandNode() : hand(NULL)
@@ -94,6 +94,8 @@ class BarrettHandNode
     ~BarrettHandNode()
     {
     }
+    bool
+    handInitialize(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
     bool
     handOpenGrasp(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
     bool
@@ -153,6 +155,7 @@ void BarrettHandNode::init(ProductManager &pm)
     hand->initialize();
     hand->update();
     bhand_joint_state_pub = nh_.advertise < sensor_msgs::JointState > ("joint_states", 1); // bhand/joint_states
+    hand_initialize_srv = nh_.advertiseService("initialize", &BarrettHandNode::handInitialize, this); // bhand/initialize
     hand_open_grsp_srv = nh_.advertiseService("open_grasp", &BarrettHandNode::handOpenGrasp, this); // bhand/open_grasp
     hand_close_grsp_srv = nh_.advertiseService("close_grasp", &BarrettHandNode::handCloseGrasp, this); // bhand/close_grasp
     hand_open_sprd_srv = nh_.advertiseService("open_spread", &BarrettHandNode::handOpenSpread, this); // bhand/open_spread
@@ -172,6 +175,14 @@ void BarrettHandNode::init(ProductManager &pm)
     bhand_joint_state.name.resize(7);
     bhand_joint_state.name = bhand_joints;
     bhand_joint_state.position.resize(7);
+  }
+
+//Function to initialize the BarrettHand
+bool BarrettHandNode::handInitialize(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  {
+    ROS_INFO("Initializing the BarrettHand");
+    hand->initialize();
+    return true;
   }
 
 //Function to open the BarrettHand Grasp
@@ -274,7 +285,8 @@ void BarrettHandNode::publishFTS()
 }
 
 void BarrettHandNode::publishHand() {
-  hand->update(); // Update the hand sensors
+  hand->update(Hand::S_POSITION | Hand::S_FINGERTIP_TORQUE | Hand::S_TACT_TOP10); // Update these hand sensors
+  
   std::vector<int> fingerTip = hand->getFingertipTorque();
   Hand::jp_type hi =
       hand->getInnerLinkPosition(); // get finger positions information
@@ -284,7 +296,7 @@ void BarrettHandNode::publishHand() {
     std::vector<TactilePuck *> tps = hand->getTactilePucks();
     for (unsigned i = 0; i < tps.size(); i++)
     {
-      TactilePuck::v_type pressures(tps[i]->getFullData());
+      TactilePuck::v_type pressures(tps[i]->getTactileData());
       for (int j = 0; j < pressures.size(); j++)
       {
         int value = (int)(pressures[j] * 256.0) / 102; // integer division

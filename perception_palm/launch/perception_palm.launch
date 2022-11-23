@@ -1,24 +1,47 @@
 <launch>
-      <group ns="barrett">
-      <node pkg="uvc_camera" type="uvc_stereo_node" name="uvc_camera_stereo">
-        <param name="width" type="int" value="320" />
-        <param name="height" type="int" value="240" />
-        <param name="fps" type="int" value="30" />
-        <param name="frame" type="string" value="wide_stereo" />
-        <param name="left/rotate" type="bool" value="true" />
-        <param name="right/device" type="string" value="/dev/video0" />
-        <param name="left/device" type="string" value="/dev/video1" />
-      </node>
-      <!--
-      <node pkg="uvc_camera" type="uvc_camera_node" name="uvc_camera_stereo">
-        <param name="width" type="int" value="1600" />
-        <param name="height" type="int" value="1200" />
-        <param name="fps" type="int" value="30" />
-        <param name="frame" type="string" value="monocular_camera" />
-        <param name="device" type="string" value="/dev/video0" />
-      </node>
-      -->
-      <node pkg="perception_palm" type="perception_palm_node" name="perception_palm_node" output="screen" cwd="node"/>
-      <node pkg="tf" type="static_transform_publisher" name="fixed_frame" args="0 0 0 0 0 0 map fixed_frame 100" />
-      </group>
+	<group ns="barrett">
+		<arg name="mono_camera" default="true" />
+		<group unless="$(arg mono_camera)">
+
+			<node name="left" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/video0" />
+    <param name="image_width" value="320" />
+    <param name="image_height" value="240" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="framerate" value="30" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+  </node>
+    
+    <node name="right" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/video2" />
+    <param name="image_width" value="320" />
+    <param name="image_height" value="240" />
+    <param name="framerate" value="30" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+  </node>
+
+      <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find perception_palm)/launch/palm_stereo.rviz" output="screen" />
+		</group>
+		<group if="$(arg mono_camera)">
+			<node name="right" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/video2" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="framerate" value="30" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+  </node>
+      <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find perception_palm)/launch/palm_mono.rviz" output="screen" />
+		</group>
+		
+		<node pkg="perception_palm" type="perception_palm_node" name="perception_palm_node" output="screen" cwd="node" />
+		
+		<node pkg="tf" type="static_transform_publisher" name="fixed_frame" args="0 0 0 0 0 0 map fixed_frame 100" />
+		
+	</group>
 </launch>
+
