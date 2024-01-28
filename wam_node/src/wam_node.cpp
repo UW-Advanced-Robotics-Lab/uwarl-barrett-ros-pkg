@@ -57,6 +57,7 @@
 #include "wam_srvs/BHandGraspVel.h"
 #include "wam_srvs/BHandSpreadVel.h"
 #include "std_srvs/Empty.h"
+#include "std_msgs/Bool.h"
 #include "sensor_msgs/JointState.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Wrench.h"
@@ -65,15 +66,25 @@
 #include <barrett/units.h>
 #include <barrett/systems.h>
 #include <barrett/products/product_manager.h>
+
+#define BARRETT_SMF_CONFIGURE_PM
 #include <barrett/standard_main_function.h>
 #include <barrett/systems/wam.h>
 #include <barrett/detail/stl_utils.h>
 
-static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
-static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
-static const double SPEED = 0.03; // Default Cartesian Velocity
+static const int WAM_CONTROL_RATE = 500; // Set libbarrett's WAM control rate
+static const int WAM_PUBLISH_FREQ = 500; // ROS control loop rate, WAM publishing frequency
+static const int FT_PUBLISH_FREQ  = 500; // ForceTorque feedback rate
+static const int BH_PUBLISH_FREQ  =  40; // BHand control loop rate
+static const int SAFETY_MODE_FREQ =  10; // Safety state feedback rate
+static const double SPEED = 0.03; // Default Cartesian velocity
 
 using namespace barrett;
+
+bool configure_pm(int argc, char** argv, ::ProductManager& pm){
+  pm.getExecutionManager(1.0 / WAM_CONTROL_RATE);
+  return true;
+}
 
 //Creating a templated multiplier for our real-time computation
 template<typename T1, typename T2, typename OutputType>
@@ -214,9 +225,16 @@ template<size_t DOF>
     wam_msgs::tactilePressure tactileState;
     geometry_msgs::PoseStamped wam_pose;
     geometry_msgs::Wrench fts_state;
+    std_msgs::Bool move_is_done;
 
     //Publishers
-    ros::Publisher wam_joint_state_pub, bhand_joint_state_pub, wam_pose_pub, fts_pub, tps_pub, fingerTs_pub;
+    ros::Publisher wam_joint_state_pub;
+    ros::Publisher wam_move_state_pub;
+    ros::Publisher bhand_joint_state_pub;
+    ros::Publisher wam_pose_pub;
+    ros::Publisher fts_pub;
+    ros::Publisher tps_pub;
+    ros::Publisher fingerTs_pub;
 
     //Services
     ros::ServiceServer gravity_srv, go_home_srv, hold_jpos_srv, hold_cpos_srv;
@@ -331,25 +349,20 @@ template<size_t DOF>
     if (pm.foundHand()) // Does the following only if a BarrettHand is present
     {
       hand = pm.getHand();
+      ROS_INFO("Barrett Hand");
       if (hand->hasFingertipTorqueSensors())
       {
+        ROS_INFO("...with Fingertip Sensors");
         fingerTs_pub = nh_.advertise<wam_msgs::FtTorques>(
-            "finger_tip_states", 1); // finger tip torques
-        if (hand->hasTactSensors())
-        {
-          tps_pub = nh_.advertise<wam_msgs::tactilePressureArray>(
-              "tactile_states", 1); // tactile  sensors
-          ROS_INFO("Barrett Hand with Fingertip Torque and Tactile Sensors");
-        } else
-        {
-          ROS_INFO("Barrett Hand with Fingertip Sensors");
-        }
+            "finger_tip_states", 1); // Publish the finger tip torques
       }
-      else
+      if (hand->hasTactSensors())
       {
-        ROS_INFO("Barrett Hand with no sensors");
+        ROS_INFO("...with Tactile Sensors");
+        tps_pub = nh_.advertise<wam_msgs::tactilePressureArray>(
+            "tactile_states", 1); // Publish the tactile sensors
       }
-
+      
       // Adjust the torque limits to allow for BarrettHand movements at extents
       pm.getSafetyModule()->setTorqueLimit(3.0);
 
@@ -365,6 +378,7 @@ template<size_t DOF>
 
       //Publishing the following topics only if there is a BarrettHand present
       bhand_joint_state_pub = nh_.advertise < sensor_msgs::JointState > ("joint_states", 1); // bhand/joint_states
+
       //Advertise the following services only if there is a BarrettHand present
       hand_open_grsp_srv = nh_.advertiseService("open_grasp", &WamNode<DOF>::handOpenGrasp, this); // bhand/open_grasp
       hand_close_grsp_srv = nh_.advertiseService("close_grasp", &WamNode::handCloseGrasp, this); // bhand/close_grasp
@@ -380,10 +394,13 @@ template<size_t DOF>
       //Set up the BarrettHand joint state publisher
       const char* bhand_jnts[] = {"inner_f1", "inner_f2", "inner_f3", "spread", "outer_f1", "outer_f2", "outer_f3"};
       std::vector < std::string > bhand_joints(bhand_jnts, bhand_jnts + 7);
+
       tactileState.pressure.resize(24);
       tactileState.normalizedPressure.resize(24);
       tactileStates.tactilePressures.resize(4);
+
       ftTorque_state.torque.resize(4);
+
       bhand_joint_state.name.resize(7);
       bhand_joint_state.name = bhand_joints;
       bhand_joint_state.position.resize(7);
@@ -402,6 +419,7 @@ template<size_t DOF>
 
     //Publishing the following rostopics
     wam_joint_state_pub = n_.advertise < sensor_msgs::JointState > ("joint_states", 1); // wam/joint_states
+    wam_move_state_pub = n_.advertise < std_msgs::Bool > ("move_is_done", 1); // moving state
     wam_pose_pub = n_.advertise < geometry_msgs::PoseStamped > ("pose", 1); // wam/pose
 
     //Subscribing to the following rostopics
@@ -421,7 +439,6 @@ template<size_t DOF>
     pose_move_srv = n_.advertiseService("pose_move", &WamNode::poseMove, this); // wam/pose_move
     cart_move_srv = n_.advertiseService("cart_move", &WamNode::cartMove, this); // wam/cart_pos_move
     ortn_move_srv = n_.advertiseService("ortn_move", &WamNode::ortnMove, this); // wam/ortn_move
-
   }
 
 // gravity_comp service callback
@@ -743,6 +760,7 @@ template<size_t DOF>
     jv_type jv = wam.getJointVelocities();
     cp_type cp_pub = wam.getToolPosition();
     Eigen::Quaterniond to_pub = wam.getToolOrientation();
+    move_is_done.data = wam.moveIsDone();
 
     //publishing sensor_msgs/JointState to wam/joint_states
     for (size_t i = 0; i < DOF; i++)
@@ -753,6 +771,9 @@ template<size_t DOF>
     }
     wam_joint_state.header.stamp = ros::Time::now();
     wam_joint_state_pub.publish(wam_joint_state);
+
+    //move_is_done.header.stamp = ros::Time::now();
+    wam_move_state_pub.publish(move_is_done);
 
     //publishing geometry_msgs/PoseStamed to wam/pose
     wam_pose.header.stamp = ros::Time::now();
@@ -770,80 +791,76 @@ template<size_t DOF>
 template<size_t DOF>
   void WamNode<DOF>::publishHand() //systems::PeriodicDataLogger<debug_tuple>& logger
   {
-    while (ros::ok())
+    hand->update(Hand::S_POSITION | Hand::S_FINGERTIP_TORQUE | Hand::S_TACT_TOP10); // Update these hand sensors
+    std::vector<TactilePuck*> tps = hand->getTactilePucks();
+    std::vector<int> fingerTip = hand->getFingertipTorque();
+    Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
+    Hand::jp_type ho = hand->getOuterLinkPosition();
+    for (unsigned i = 0; i < tps.size(); i++)
     {
-      hand->update(); // Update the hand sensors
-      std::vector<TactilePuck*> tps = hand->getTactilePucks();
-      std::vector<int> fingerTip = hand->getFingertipTorque();
-      Hand::jp_type hi = hand->getInnerLinkPosition(); // get finger positions information
-      Hand::jp_type ho = hand->getOuterLinkPosition();
-      for (unsigned i = 0; i < tps.size(); i++)
-      {
-        TactilePuck::v_type pressures(tps[i]->getFullData());
-        for (int j = 0; j < pressures.size(); j++) {
-          int value = (int)(pressures[j] * 256.0) / 102;  // integer division
-          tactileState.pressure[j] = pressures[j];
-          int c = 0;
-          int chunk;
-          for (int z = 4; z >= 0; --z) {
-            chunk = (value <= 7) ? value : 7;
-            value -= chunk;
-            switch (chunk)
-            {
-            case 0:
-              c = c + 1;
-              break;
-            case 1:
-              c = c + 2;
-              break;
-            case 2:
-              c = c + 3;
-              break;
-            default:
-              c = c + 4;
-              break;
-            }
-            switch (chunk - 4) {
-            case 3:
-              c = c + 4;
-              break;
-            case 2:
-              c = c+ 3;
-              break;
-            case 1:
-              c = c + 2;
-              break;
-            case 0:
-              c = c + 1;
-              break;
-            default:
-              c = c + 0;
-              break;
-            }
+      TactilePuck::v_type pressures(tps[i]->getTactileData());
+      for (int j = 0; j < pressures.size(); j++) {
+        int value = (int)(pressures[j] * 256.0) / 102;  // integer division
+        tactileState.pressure[j] = pressures[j];
+        int c = 0;
+        int chunk;
+        for (int z = 4; z >= 0; --z) {
+          chunk = (value <= 7) ? value : 7;
+          value -= chunk;
+          switch (chunk)
+          {
+          case 0:
+            c = c + 1;
+            break;
+          case 1:
+            c = c + 2;
+            break;
+          case 2:
+            c = c + 3;
+            break;
+          default:
+            c = c + 4;
+            break;
           }
-          tactileState.normalizedPressure[j] = c - 5;
+          switch (chunk - 4) {
+          case 3:
+            c = c + 4;
+            break;
+          case 2:
+            c = c+ 3;
+            break;
+          case 1:
+            c = c + 2;
+            break;
+          case 0:
+            c = c + 1;
+            break;
+          default:
+            c = c + 0;
+            break;
+          }
         }
-        tactileStates.tactilePressures[i] = tactileState;
+        tactileState.normalizedPressure[j] = c - 5;
       }
-      for (unsigned i = 0; i < fingerTip.size(); i++)
-      {
-        ftTorque_state.torque[i] = fingerTip[i];
-      }
-      for (size_t i = 0; i < 4; i++) // Save finger positions
-        bhand_joint_state.position[i] = hi[i];
-      for (size_t j = 0; j < 3; j++)
-        bhand_joint_state.position[j + 4] = ho[j];
-      bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
-      bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
-      if (hand->hasTactSensors())
-      {
-        tps_pub.publish(tactileStates);
-      }
-      if (hand->hasFingertipTorqueSensors())
-      {
-        fingerTs_pub.publish(ftTorque_state);
-      }
-      btsleep(1.0 / BHAND_PUBLISH_FREQ); // Sleep according to the specified publishing frequency
+      tactileStates.tactilePressures[i] = tactileState;
+    }
+    for (unsigned i = 0; i < fingerTip.size(); i++)
+    {
+      ftTorque_state.torque[i] = fingerTip[i];
+    }
+    for (size_t i = 0; i < 4; i++) // Save finger positions
+      bhand_joint_state.position[i] = hi[i];
+    for (size_t j = 0; j < 3; j++)
+      bhand_joint_state.position[j + 4] = ho[j];
+    bhand_joint_state.header.stamp = ros::Time::now(); // Set the timestamp
+    bhand_joint_state_pub.publish(bhand_joint_state); // Publish the BarrettHand joint states
+    if (hand->hasTactSensors())
+    {
+      tps_pub.publish(tactileStates);
+    }
+    if (hand->hasFingertipTorqueSensors())
+    {
+      fingerTs_pub.publish(ftTorque_state);
     }
   }
   
@@ -851,21 +868,18 @@ template<size_t DOF>
 template<size_t DOF>
   void WamNode<DOF>::publishFTS() //systems::PeriodicDataLogger<debug_tuple>& logger
   {
-    while (ros::ok())
-    {
-      fts->update(); // Update the hand sensors
-      cf = math::saturate(fts->getForce(), 99.99);
-      ct = math::saturate(fts->getTorque(), 9.999);
-      // Force vector
-      fts_state.force.x = cf[0];
-      fts_state.force.y = cf[1];
-      fts_state.force.z = cf[2];
-      // Torque vector
-      fts_state.torque.x = ct[0];
-      fts_state.torque.y = ct[1];
-      fts_state.torque.z = ct[2];
-      fts_pub.publish(fts_state);
-    }
+    fts->update(); // Update the hand sensors
+    cf = math::saturate(fts->getForce(), 99.99);
+    ct = math::saturate(fts->getTorque(), 9.999);
+    // Force vector
+    fts_state.force.x = cf[0];
+    fts_state.force.y = cf[1];
+    fts_state.force.z = cf[2];
+    // Torque vector
+    fts_state.torque.x = ct[0];
+    fts_state.torque.y = ct[1];
+    fts_state.torque.z = ct[2];
+    fts_pub.publish(fts_state);
   }  
 
 
@@ -1011,24 +1025,54 @@ template<size_t DOF>
   int wam_main(int argc, char** argv, ProductManager& pm, systems::Wam<DOF>& wam)
   {
     BARRETT_UNITS_TEMPLATE_TYPEDEFS(DOF);
+    uint32_t bh_ctr = 0;
+    uint32_t ft_ctr = 0;
+    uint32_t safety_ctr = 0;
+    uint32_t ft_cts_per_loop = WAM_PUBLISH_FREQ / FT_PUBLISH_FREQ;
+    uint32_t bh_cts_per_loop = WAM_PUBLISH_FREQ / BH_PUBLISH_FREQ;
+    uint32_t safety_cts_per_loop = WAM_PUBLISH_FREQ / SAFETY_MODE_FREQ;
+
     ros::init(argc, argv, "wam_node");
     WamNode<DOF> wam_node(wam);
     wam_node.init(pm);
-    ros::Rate pub_rate(PUBLISH_FREQ);
+    ros::Rate pub_rate(WAM_PUBLISH_FREQ); // Main loop runs at the WAM's rate
 
-    if (pm.getForceTorqueSensor())
-      boost::thread ftsPubThread(&WamNode<DOF>::publishFTS, &wam_node);
-
-    if (pm.getHand())
-      boost::thread handPubThread(&WamNode<DOF>::publishHand, &wam_node);
-
-    while (ros::ok() && pm.getSafetyModule()->getMode() == SafetyModule::ACTIVE)
+    while (ros::ok())
     {
+      // Handle the FT at its own rate
+      if(++ft_ctr >= ft_cts_per_loop){
+        ft_ctr = 0;
+        if (pm.getForceTorqueSensor()){
+          wam_node.publishFTS();
+        }
+      }
+
+      // Handle the BHand at its own rate
+      if(++bh_ctr >= bh_cts_per_loop){
+        bh_ctr = 0;
+        if (pm.getHand()){
+          wam_node.publishHand();
+        }
+      }
+
+      // Handle all ROS callbacks
       ros::spinOnce();
+
       wam_node.publishWam(pm);
       wam_node.updateRT(pm);
+      
+      // Check safety status, exit if no longer ACTIVE
+      if(++safety_ctr >= safety_cts_per_loop){
+        safety_ctr = 0;
+        if(pm.getSafetyModule()->getMode() != SafetyModule::ACTIVE){
+          break;
+        }
+      }
+
+      // Sleep for the remainder of the loop period
       pub_rate.sleep();
     }
 
     return 0;
   }
+
