@@ -1,0 +1,10 @@
+#goal
+float32[] joints
+float32[] time_instances
+float32[] rate_limits
+---
+#result
+bool success
+---
+#feedback
+bool success

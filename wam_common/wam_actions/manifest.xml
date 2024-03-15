@@ -1,0 +1,13 @@
+<package>
+  <description brief="wam_msgs">
+
+     This Package does not contain WAM / BarrettHand specific actions.
+
+  </description>
+  <author>Barrett Technology Inc., Kyle Maroney</author>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/wam_msgs</url>
+
+</package>
+
+

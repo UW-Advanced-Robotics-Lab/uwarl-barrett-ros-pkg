@@ -69,6 +69,12 @@
 #include <barrett/systems/wam.h>
 #include <barrett/detail/stl_utils.h>
 
+// http://wiki.ros.org/actionlib#C.2B-.2B-_SimpleActionServer
+// User-defined action-message `RTJointTraj.action` is defined in the package `wam_actions`
+#include <wam_actions/RTJointTrajAction.h>
+// In-order to setup an action server
+#include <actionlib/client/simple_action_server.h>
+
 static const int PUBLISH_FREQ = 250; // Default Control Loop / Publishing Frequency
 static const int BHAND_PUBLISH_FREQ = 5; // Publishing Frequency for the BarretHand
 static const double SPEED = 0.03; // Default Cartesian Velocity
@@ -227,6 +233,15 @@ template<size_t DOF>
     ros::ServiceServer hand_grsp_pos_srv, hand_grsp_vel_srv, hand_sprd_pos_srv;
     ros::ServiceServer hand_sprd_vel_srv;
 
+    // User-defined action server
+    // Action-server
+    actionlib::SimpleActionServer<wam_actions::RTJointTrajAction> as_;
+    // create messages that are used to publish feedback and result
+    wam_actions::RTJointTrajFeedback feedback_;
+    wam_actions::RTJointTrajResult result_;
+    // Define action-server name
+    std::string action_name_("wam_joint_traj_follower");
+
   public:
     WamNode(systems::Wam<DOF>& wam_) :
         wam(wam_), hand(NULL), fts(NULL), ramp(NULL, SPEED)
@@ -295,6 +310,11 @@ template<size_t DOF>
     publishFTS(void);
     void
     updateRT(ProductManager& pm);
+    
+    // User-defined action-server execution call-back
+    // It is called when executing the action
+    void
+    executeCB(const wam_actions::RTJointTrajGoalConstPtr &goal);
   };
 
 // Templated Initialization Function
@@ -407,6 +427,8 @@ template<size_t DOF>
     cart_move_srv = n_.advertiseService("cart_move", &WamNode::cartMove, this); // wam/cart_pos_move
     ortn_move_srv = n_.advertiseService("ortn_move", &WamNode::ortnMove, this); // wam/ortn_move
 
+    // Used-defined action server
+    as_(n_, action_name_, boost::bind(&WamNode::executeCB, this, _1), false);
   }
 
 // gravity_comp service callback
@@ -984,6 +1006,21 @@ template<size_t DOF>
       cart_vel_status = ortn_vel_status = jnt_vel_status = jnt_pos_status = cart_pos_status = ortn_pos_status = false;
     }
   }
+
+//Function to run the wam joints over a pre-defined trajectory
+template<size_t DOF>
+  void WamNode<DOF>::executeCB(const wam_actions::RTJointTrajGoalConstPtr &goal)
+  {
+    while (ros::ok())
+    {
+      // Pass over the joint-pos array and enter the corresponding time-value into the container.
+      // Pass the container to the spline-generator
+      // Connect the generated spline to the wam-reference follower
+      // Possibly record the actual motion onto a log-file for the sake of quality-checking and trouble-shooting
+    }
+  }  
+
+
 
 //wam_main Function
 template<size_t DOF>
