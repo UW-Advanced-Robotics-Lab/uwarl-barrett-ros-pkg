@@ -1,7 +1,5 @@
 #goal
-float32[] joints
-float32[] time_instances
-float32[] rate_limits
+wam_msgs/RTJointTrajPt[] traj_points
 ---
 #result
 bool success

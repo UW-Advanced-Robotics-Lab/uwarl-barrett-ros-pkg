@@ -72,6 +72,10 @@
 // http://wiki.ros.org/actionlib#C.2B-.2B-_SimpleActionServer
 // User-defined action-message `RTJointTraj.action` is defined in the package `wam_actions`
 #include <wam_actions/RTJointTrajAction.h>
+// It uses a user-defined wam-message called , which combines a `RTJointPos` and a float to store time-from-start
+#include "wam_msgs/RTJointTrajPt.h"
+// In order to read float32 standard-message-type
+// #include <std_msgs/Float32.h>
 // In-order to setup an action server
 #include <actionlib/client/simple_action_server.h>
 
@@ -241,6 +245,15 @@ template<size_t DOF>
     wam_actions::RTJointTrajResult result_;
     // Define action-server name
     std::string action_name_("wam_joint_traj_follower");
+
+    // Deine the variables that will hold the time and trajectory-point in a form to be sent to the reference-follower
+    typedef boost::tuple<double, jp_type> jp_sample_type;
+    // Initialize an empty jp_type object to store a WAM joint way-point information
+	  jp_type tmp_wam_wp;
+    // Initialize an empty jp_sample_type object to store a trajectory information
+	  jp_sample_type tmp_wam_traj_wp;
+    // Create a vector of jp_sample_type to store the trajectory sequence
+    std::vector<jp_sample_type> vec;
 
   public:
     WamNode(systems::Wam<DOF>& wam_) :
@@ -1013,9 +1026,44 @@ template<size_t DOF>
   {
     while (ros::ok())
     {
-      // Pass over the joint-pos array and enter the corresponding time-value into the container.
+      // Pass over the array of RTJointTrajPt's and enter the corresponding time-value into the container.
+      for (RTJointTrajPt (&joint_traj_pt) : goal->traj_point)
+      {
+        // Initialize the temp-variable tmp_wam_traj_wp's elements to the values in joint_traj_pt
+        // Get time
+        boost::get<0>(tmp_wam_traj_wp) = joint_traj_pt->time_from_start;
+        // Get the WAM joint way-point
+        for(size_t index = 0; index<DOF; ++index)
+        {
+          tmp_wam_wp[index] = joint_traj_pt->joint_pos[index];
+        }
+        // Set the 2nd element of the temp-variable tmp_wam_traj_wp to this tmp_wam_wp object
+        boost::get<1>(tmp_wam_traj_wp) = tmp_wam_wp;
+        // Push the tuple object into the vector of tuples to construct the trajectory
+        vec.push_back(tmp_wam_traj_wp); 
+      }
       // Pass the container to the spline-generator
+      math::Spline<jp_type> spline(vec);
+
+      ROS_INFO("Moving to initial position of trajectory-spline.");
+      // First, move to the starting position
+	    wam.moveTo(spline.eval(spline.initialS()));
+      // Then, get ready to play back the recorded motion
+	    ramp.setOutput(spline.initialS());
       // Connect the generated spline to the wam-reference follower
+      systems::Callback<double, jp_type> trajectory(boost::ref(spline));
+      systems::forceConnect(ramp.output, trajectory.input); // Connect a time-source to the trajectory.
+      // This time source will be used to dictate the current reference-position to be tracked.
+
+      // And now, we connect the reference to be followed (output) to the reference tracker.
+      wam.trackReferenceSignal(trajectory.output);
+      // start the clock
+      ramp.start();
+      // Do not execute the rest of the code while the user-provide trajectory is being followed
+      while (trajectory.input.getValue() < spline.finalS()) {
+        usleep(100000);
+      }
+      ROS_INFO("Finished following user-provided trajectory.");
       // Possibly record the actual motion onto a log-file for the sake of quality-checking and trouble-shooting
     }
   }  
